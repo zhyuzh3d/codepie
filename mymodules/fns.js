@@ -15,6 +15,25 @@ JSON.safeParse = JSON.sparse = function (str) {
 };
 
 
+/*重新封装console的函数*/
+console.xerr = function () {
+    var args = auguments;
+    console.error(args);
+};
+console.xlog = function () {
+    var args = auguments;
+    console.log(args);
+};
+console.xinfo = function () {
+    var args = auguments;
+    console.info(args);
+};
+console.xwarn = function () {
+    var args = auguments;
+    console.xwarn(args);
+};
+
+
 
 //导出模块
 module.exports = mod;

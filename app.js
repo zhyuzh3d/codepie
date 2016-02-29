@@ -15,14 +15,20 @@ lib.fs = require('fs');
 lib.koa = require('koa');
 lib.sktio = require('socket.io');
 lib.router = require('koa-router');
+lib.redis = require('redis');
+lib.co=require('co');
 
 
 //自定义库引入
+mlib.ctn = require('./mymodules/ctn.js');
+mlib.fns = require('./mymodules/fns.js');
+mlib.cfg = require('./mymodules/cfg.js');
+mlib.rds = require('./mymodules/rds.js');
 mlib.router = require('./mymodules/router.js');
-mlib.redis = require('./mymodules/redis.js');
 mlib.midware = require('./mymodules/midware.js');
 
 
+//服务器对象
 var koaSvr = app.koaApp = lib.koa();
 var httpSvr = app.httpApp = lib.http.createServer(koaSvr.callback());
 var sktSvr = app.sktSvr = lib.sktio(httpSvr);
@@ -42,7 +48,6 @@ httpSvr.on('error', function (err) {
     };
 });
 
-
 //http请求中间件
 koaSvr.use(mlib.midware)
 
@@ -55,4 +60,3 @@ koaSvr.use(mlib.router.routes());
 
 
 //end
-
