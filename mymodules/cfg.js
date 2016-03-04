@@ -3,39 +3,13 @@
 xcfg文件json的读写功能
 */
 
-var mod = {};
+var cfg = {};
 
-mod.xcfg = function () {
-    var xstr = lib.fs.readFileSync('../xcfg.json', 'utf-8');
+cfg.xcfg = function () {
+    var xstr = $fs.readFileSync('../xcfg.json', 'utf-8');
     var xobj = JSON.sparse(xstr);
     return xobj;
 }();
-
-
-/*
-
-
-
-lib.co(function* () {
-    var res;// = yield
-    //function (cb) {
-        //        cli.hgetall('_cfg', cb);
-    //};
-
-    var fn = mlib.ctn.gen(mlib.rds.cli.hgetall, '_cfg');
-    console.log('>>>>>>fn', fn);
-    res = yield fn;
-
-
-    console.log('>>rds cfg', res);
-    return res;
-}).then(function (v) {
-    console.log('>>>v', v);
-}, function (err) {
-    console.log('>>>err', err.stack);
-});
-*/
-
 
 
 
@@ -44,4 +18,4 @@ lib.co(function* () {
 
 
 //导出模块
-module.exports = mod;
+module.exports = cfg;

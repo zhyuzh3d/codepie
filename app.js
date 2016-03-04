@@ -1,37 +1,42 @@
 /*程序入口
 初始化启动http和skt服务器
-初始化全局变量hub，lib，mlib
+外部引入的模块使用$开头，如$http;
+自定义的模块以下划线开头且必须是不超过4个字母，如_rds
+自定义的全局变量同样以下划线开头且最少5个字母，如_config
+自定义模块输出无下划线同名对象，如export rds;
 */
 
 global.hub = {}; //串联器hub用于存储共享变量,以文件模块为组织
 global.lib = {}; //外部库用于放置所有reqire模块
 global.mlib = {}; //自定义库用于放置所有reqire模块
+global.cfg = {}; //自定义库读取自redis数据库
+
 
 var app = hub.app = {};
 
 //外部库引入
-lib.http = require('http');
-lib.fs = require('fs');
-lib.koa = require('koa');
-lib.sktio = require('socket.io');
-lib.router = require('koa-router');
-lib.redis = require('redis');
-lib.co=require('co');
+global.$http = require('http');
+global.$fs = require('fs');
+global.$koa = require('koa');
+global.$sktio = require('socket.io');
+global.$router = require('koa-router');
+global.$redis = require('redis');
+global.$co = require('co');
 
 
 //自定义库引入
-mlib.ctn = require('./mymodules/ctn.js');
-mlib.fns = require('./mymodules/fns.js');
-mlib.cfg = require('./mymodules/cfg.js');
-mlib.rds = require('./mymodules/rds.js');
-mlib.router = require('./mymodules/router.js');
-mlib.midware = require('./mymodules/midware.js');
+global._ctnu = require('./mymodules/ctnu.js');
+global._fns = require('./mymodules/fns.js');
+global._cfg = require('./mymodules/cfg.js');
+global._rds = require('./mymodules/rds.js');
+global._rotr = require('./mymodules/rotr.js');
+global._mdwr = require('./mymodules/mdwr.js');
 
 
 //服务器对象
-var koaSvr = app.koaApp = lib.koa();
-var httpSvr = app.httpApp = lib.http.createServer(koaSvr.callback());
-var sktSvr = app.sktSvr = lib.sktio(httpSvr);
+var koaSvr = app.koaApp = $koa();
+var httpSvr = app.httpApp = $http.createServer(koaSvr.callback());
+var sktSvr = app.sktSvr = $sktio(httpSvr);
 
 
 //正式服务器80监听，本地测试8000
@@ -49,10 +54,10 @@ httpSvr.on('error', function (err) {
 });
 
 //http请求中间件
-koaSvr.use(mlib.midware)
+koaSvr.use(_mdwr)
 
 //http请求的路由控制
-koaSvr.use(mlib.router.routes());
+koaSvr.use(_rotr.routes());
 
 
 

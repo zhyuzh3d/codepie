@@ -2,7 +2,7 @@
 如调整路径，检测用户user认证等
 */
 
-var mod = function* (next) {
+var mdwr = function* (next) {
     if (this.path == '/' || this.path == '/index' || this.path == '/index.html') {
         this.path = '/pie/start';
         //临时返回
@@ -24,4 +24,4 @@ welstr += '<div>';
 
 
 //导出模块
-module.exports = mod;
+module.exports = mdwr;

@@ -2,18 +2,25 @@
 提供redis相关的基础功能函数
 */
 
-var mod = {};
-var cli = mod.cli = lib.redis.createClient(6379, 'localhost', {});
+var rds = {};
+var cli = rds.cli = $redis.createClient(6379, 'localhost', {});
 
 
-lib.co(function* () {
-    var res = yield mlib.ctn([mod.cli, 'hgetall'], '_cfg');;
+//读取静态cfg(如果不存在就自动设置)
+$co(function* () {
+    var mult = cli.multi();
+    mult.hsetnx('_cfg', '_author', 'zhyuzh');
+    mult.hgetall('_cfg');
+    var res = yield _ctnu([mult, 'exec']);
+    if (res[1]) {
+        cfg = res[1];
+    } else {
+        throw Error('rds:read _cfg failed.');
+    };
     return res;
-}).then(function (dat) {
-    console.log('>>fini ok', dat);
-}, function (err) {
-    console.log('>>fini err', err.stack);
-})
+}).then(_infohdlr, _errhdlr);
+
+console.log('---')
 
 
 
@@ -22,4 +29,4 @@ lib.co(function* () {
 
 
 //导出模块
-module.exports = mod;
+module.exports = rds;

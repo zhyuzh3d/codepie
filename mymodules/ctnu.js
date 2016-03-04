@@ -1,15 +1,15 @@
 /*专为co内yield调用异步函数而准备的封装函数
-ctn返回continuable的可继续执行的异步函数
+ctnu返回continuable的可继续执行的异步函数
 有两个版本，但只导出第一个
  */
-var mod = {};
+var ctnu = {};
 
 /*生成可以作为co中yield函数的continuable函数，Promise版本
 可以接受1～4个参数
 如果第一个参数如果是数字，当作sleep的毫秒数，后面参数忽略；
 如果第一个参数是函数，后面的参数作为它的参数，并最后自动追加一个fn(err,dat)格式回调函数
 */
-mod.ctn = function () {
+ctnu.ctnu = function () {
     var args = arguments;
     var res;
     var arg0 = args.length > 0 ? args[0] : undefined;
@@ -26,7 +26,7 @@ mod.ctn = function () {
     return res;
 };
 
-/*ctn中使用的sleep函数
+/*ctnu中使用的sleep函数
 当没有参数或第一个参数是数字的时候（后面参数将会被忽略）*/
 function genSleepRes(args) {
     var res;
@@ -38,7 +38,7 @@ function genSleepRes(args) {
 };
 
 
-/*ctn中使用的常规处理函数
+/*ctnu中使用的常规处理函数
 当第一个参数是普通函数的时候使用这个*/
 function genNomalRes(args) {
     var res;
@@ -72,7 +72,7 @@ function genNomalRes(args) {
     return res;
 };
 
-/*ctn中使用的redis处理函数
+/*ctnu中使用的redis处理函数
 当第一个参数是队列的时候使用这个, 队列必须是[对象，属性名字符串]
 这个函数保留lib.rds.cli['command'](p1,callback)格式，可以避免redis中的this找不到问题
 */
@@ -108,7 +108,7 @@ function genRedisRes(args) {
     return res;
 };
 
-/*ctn中使用的then回调函数*/
+/*ctnu中使用的then回调函数*/
 function resrej(resolvefn, rejectfn) {
     return function (err, dat) {
         if (!err) {
@@ -125,29 +125,12 @@ function resrej(resolvefn, rejectfn) {
 
 
 
-/*
-        res = function (cb) {
-            var s = mlib.rds.cli;
-            //            mlib.rds.cli.hgetall('_cfg', function(err,dat){
-
-            //对于redis需要保存最后一个命令！hgetall，所以要单独设定ctnx，或者想办法特别处理！！！！！！！
-            s['hgetall']('_cfg', function (err, dat) {
-                cb(err, dat);
-            });
-        }*/
-
-
-
-
-
-
-
 /*生成可以作为co中yield函数的continuable函数，Callback版本
 可以接受1～4个参数
 如果第一个参数如果是数字，当作sleep的毫秒数，后面参数忽略；
 如果第一个参数是函数，后面的参数作为它的参数，并最后自动追加一个fn(err,dat)格式回调函数
 */
-mod.ctn2 = function () {
+ctnu.ctnu2 = function () {
     var args = arguments;
     var fn = args.length > 0 ? args[0] : undefined;
 
@@ -194,4 +177,4 @@ mod.ctn2 = function () {
 
 
 //导出模块
-module.exports = mod.ctn;
+module.exports = ctnu.ctnu;

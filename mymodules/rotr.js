@@ -3,14 +3,14 @@
 分发处理/api/:apiname请求
 */
 
-var mod = {};
+var rotr = {};
 
 //http请求的路由控制
-mod = new lib.router();
+rotr = new $router();
 
 //访问pie（app）的请求
-mod.get('pie', '/pie/:appname', pageApp);
-mod.get('app', '/app/:appname', pageApp);
+rotr.get('pie', '/pie/:appname', pageApp);
+rotr.get('app', '/app/:appname', pageApp);
 
 /*生成app页面*/
 function* pageApp(next) {
@@ -23,8 +23,8 @@ function* pageApp(next) {
 
 
 //访问api的get/post请求
-mod.get('api', '/api/:apiname', procApi);
-mod.post('api', '/api/:apiname', procApi);
+rotr.get('api', '/api/:apiname', procApi);
+rotr.post('api', '/api/:apiname', procApi);
 
 /*处理Api请求*/
 function* procApi(next) {
@@ -40,11 +40,11 @@ function* procApi(next) {
 
 
 //访问favicon的请求
-var favicon = lib.fs.readFileSync('favicon.png');
-mod.get('/favicon.ico', function* (next) {
+var favicon = $fs.readFileSync('favicon.png');
+rotr.get('/favicon.ico', function* (next) {
     //读取图片文件返回
     this.body = favicon;
 });
 
 //导出模块
-module.exports = mod;
+module.exports = rotr;
