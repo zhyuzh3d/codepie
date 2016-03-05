@@ -3,9 +3,9 @@
 xcfg文件json的读写功能
 */
 
-var cfg = {};
+var _cfg = {};
 
-cfg.xcfg = function () {
+_cfg.xcfg = function () {
     var xstr = $fs.readFileSync('../xcfg.json', 'utf-8');
     var xobj = JSON.sparse(xstr);
     return xobj;
@@ -18,4 +18,4 @@ cfg.xcfg = function () {
 
 
 //导出模块
-module.exports = cfg;
+module.exports = _cfg;

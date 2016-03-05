@@ -2,7 +2,7 @@
 JSON.safeParse/JSON.sparse;
 */
 
-var fns = {};
+var _fns = {};
 
 
 /*扩展JSON.safeParse*/
@@ -85,4 +85,4 @@ function __uuid() {
 
 
 //导出模块
-module.exports = fns;
+module.exports = _fns;

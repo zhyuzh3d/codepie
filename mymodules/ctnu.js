@@ -2,14 +2,14 @@
 ctnu返回continuable的可继续执行的异步函数
 有两个版本，但只导出第一个
  */
-var ctnu = {};
+var _ctnu = {};
 
 /*生成可以作为co中yield函数的continuable函数，Promise版本
 可以接受1～4个参数
 如果第一个参数如果是数字，当作sleep的毫秒数，后面参数忽略；
 如果第一个参数是函数，后面的参数作为它的参数，并最后自动追加一个fn(err,dat)格式回调函数
 */
-ctnu.ctnu = function () {
+_ctnu.ctnu = function () {
     var args = arguments;
     var res;
     var arg0 = args.length > 0 ? args[0] : undefined;
@@ -146,7 +146,7 @@ function resrej(resolvefn, rejectfn) {
 如果第一个参数如果是数字，当作sleep的毫秒数，后面参数忽略；
 如果第一个参数是函数，后面的参数作为它的参数，并最后自动追加一个fn(err,dat)格式回调函数
 */
-ctnu.ctnu2 = function () {
+_ctnu.ctnu2 = function () {
     var args = arguments;
     var fn = args.length > 0 ? args[0] : undefined;
 
@@ -193,4 +193,4 @@ ctnu.ctnu2 = function () {
 
 
 //导出模块
-module.exports = ctnu.ctnu;
+module.exports = _ctnu.ctnu;

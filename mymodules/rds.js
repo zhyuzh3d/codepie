@@ -4,8 +4,8 @@ _cls（zset）键存储所有类型对象的autoid，由创建对象的时候inc
 _map:key1.attr:key2.attr(hash/zset)存储各类映射检索，如果后者key2.attr是id数字，那么使用zset,否则使用hash
 */
 
-var rds = {};
-var cli = rds.cli = $redis.createClient(6379, 'localhost', {});
+var _rds = {};
+var cli = _rds.cli = $redis.createClient(6379, 'localhost', {});
 
 
 /*导出全局_rdscfg对象
@@ -19,7 +19,7 @@ $co(function* () {
     if (res[1]) {
         cfg = res[1];
     } else {
-        throw Error('rds:read _cfg failed.');
+        throw Error('_rds:read _cfg failed.');
     };
     return cfg;
 }).then(function (cfg) {
@@ -33,4 +33,4 @@ $co(function* () {
 
 
 //导出模块
-module.exports = rds;
+module.exports = _rds;
