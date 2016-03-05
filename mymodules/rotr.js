@@ -37,8 +37,6 @@ function* procApi(next) {
     });
 };
 
-
-
 //访问favicon的请求
 var favicon = $fs.readFileSync('favicon.png');
 rotr.get('/favicon.ico', function* (next) {

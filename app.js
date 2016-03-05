@@ -1,8 +1,8 @@
 /*程序入口
 初始化启动http和skt服务器
 外部引入的模块使用$开头，如$http;
-自定义的模块以下划线开头且必须是不超过4个字母，如_rds
-自定义的全局变量同样以下划线开头且最少5个字母，如_config
+自定义的模块以下划线开头,尽可能简短，如_rds
+自定义的全局变量以两个下划线开头，尽可能简短，如__rdsCfg
 自定义模块输出无下划线同名对象，如export rds;
 */
 
@@ -22,6 +22,7 @@ global.$sktio = require('socket.io');
 global.$router = require('koa-router');
 global.$redis = require('redis');
 global.$co = require('co');
+global.$uuid = require('node-uuid');
 
 
 //自定义库引入
@@ -29,6 +30,7 @@ global._ctnu = require('./mymodules/ctnu.js');
 global._fns = require('./mymodules/fns.js');
 global._cfg = require('./mymodules/cfg.js');
 global._rds = require('./mymodules/rds.js');
+global._usr = require('./mymodules/usr.js');
 global._rotr = require('./mymodules/rotr.js');
 global._mdwr = require('./mymodules/mdwr.js');
 

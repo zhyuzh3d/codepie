@@ -21,7 +21,7 @@ function extend(Child, Parent) {
     Child.prototype = new F();
     Child.prototype.constructor = Child;
     Child.uber = Parent.prototype;
-}
+};
 
 
 /*重新封装console的函数*/
@@ -49,33 +49,37 @@ console.xwarn = function () {
 
 
 /*专用err处理函数,适合co().then()使用*/
-global._errhdlr = _errhdlr;
+global.__errhdlr = __errhdlr;
 
-function _errhdlr(err) {
+function __errhdlr(err) {
     console.xerr(err.stack);
 };
 
 /*专用空函数，只输出不做额外处理,适合co().then()使用*/
-global._nullhdlr = _nullhdlr;
+global.__nullhdlr = __nullhdlr;
 
-function _nullhdlr(res) {};
+function __nullhdlr(res) {};
 
 /*专用空函数，只输出不做额外处理,适合co().then()使用*/
-global._infohdlr = _infohdlr;
+global.__infohdlr = __infohdlr;
 
-function _infohdlr(res) {
+function __infohdlr(res) {
     console.xinfo(res);
 };
 
 /*专用空函数，只纪录日志不做额外处理,适合co().then()使用*/
-global._loghdlr = _loghdlr;
+global.__loghdlr = __loghdlr;
 
-function _loghdlr(res) {
+function __loghdlr(res) {
     console.xlog(res);
 };
 
+/*生成不重复的key*/
+global.__uuid = __uuid;
 
-
+function __uuid() {
+    return $uuid.v4();
+};
 
 
 

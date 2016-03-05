@@ -3,6 +3,9 @@
 */
 
 var mdwr = function* (next) {
+    //检测是否登陆账号，如果没有则创建一个新用户，并将token写入客户端cookie
+
+    //调整默认路径
     if (this.path == '/' || this.path == '/index' || this.path == '/index.html') {
         this.path = '/pie/start';
         //临时返回

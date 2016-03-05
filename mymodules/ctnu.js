@@ -63,6 +63,14 @@ function genNomalRes(args) {
             fn(p1, p2, resrej(resolvefn, rejectfn));
         });
         break;
+    case 4:
+        var p1 = args[1]
+        var p2 = args[2];
+        var p3 = args[3];
+        res = new Promise(function (resolvefn, rejectfn) {
+            fn(p1, p2, p3, resrej(resolvefn, rejectfn));
+        });
+        break;
     default:
         res = new Promise(function (resolvefn, rejectfn) {
             fn(resrej(resolvefn, rejectfn));
@@ -97,6 +105,14 @@ function genRedisRes(args) {
         var p2 = args[2];
         res = new Promise(function (resolvefn, rejectfn) {
             arg0[0][arg0[1]](p1, p2, resrej(resolvefn, rejectfn));
+        });
+        break;
+    case 4:
+        var p1 = args[1]
+        var p2 = args[2];
+        var p3 = args[3];
+        res = new Promise(function (resolvefn, rejectfn) {
+            arg0[0][arg0[1]](p1, p2, p3, resrej(resolvefn, rejectfn));
         });
         break;
     default:
