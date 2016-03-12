@@ -7,6 +7,10 @@ var _mdwr = function* (next) {
     if (this.path == '/' || this.path == '/index' || this.path == '/index.html') {
         this.path = '/pie/start';
     };
+    __infohdlr(this.method + ':' + this.path);
+
+    //添加用以传递数据的对象
+    this.xdat = {};
     yield next;
 };
 

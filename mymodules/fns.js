@@ -11,7 +11,7 @@ JSON.safeParse = JSON.sparse = function (str) {
         return JSON.parse(str);
     } catch (err) {
         return undefined;
-    }
+    };
 };
 
 /*扩展一个方法或对象*/
@@ -81,6 +81,45 @@ function __uuid() {
     return $uuid.v4();
 };
 
+/*md5加密
+如果str为空，自动生成一个uuid
+digest类型，hex默认,base64
+*/
+global.__md5 = __md5;
+
+function __md5(str, dig) {
+    if (!str) str = __uuid();
+    if (!dig) dig = 'hex';
+    return $crypto.createHash('md5').update(str).digest(dig)
+};
+
+/*sha1加密
+如果str为空，自动生成一个uuid
+digest类型，hex默认,base64
+*/
+global.__sha1 = __sha1;
+
+function __sha1(str, dig) {
+    if (!str) str = __uuid();
+    if (!dig) dig = 'hex';
+    return $crypto.createHash('md5').update(str).digest(dig)
+};
+
+
+
+/*生成不重复的key*/
+global.__newMsg = __newMsg;
+
+function __newMsg(code, text, data) {
+    if (text.constructor == Array) {
+        text = text.join(' ');
+    };
+    return {
+        code: code,
+        text: text,
+        data: data
+    };
+};
 
 
 

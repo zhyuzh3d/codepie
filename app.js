@@ -6,38 +6,38 @@
 自定义模块输出无下划线同名对象，如export rds;
 */
 
-global.hub = {}; //串联器hub用于存储共享变量,以文件模块为组织
-global.lib = {}; //外部库用于放置所有reqire模块
-global.mlib = {}; //自定义库用于放置所有reqire模块
-global.cfg = {}; //自定义库读取自redis数据库
 
-
-var app = hub.app = {};
+var app = global._app = {};
 
 //外部库引入
-global.$http = require('http');
-global.$fs = require('fs');
-global.$koa = require('koa');
-global.$sktio = require('socket.io');
-global.$router = require('koa-router');
-global.$redis = require('redis');
-global.$co = require('co');
-global.$uuid = require('node-uuid');
-
+var $http = global.$http = require('http');
+var $fs = global.$fs = require('fs');
+var $koa = global.$koa = require('koa');
+var $bodyParser = global.$bodyParser = require('koa-bodyparser');
+var $sktio = global.$sktio = require('socket.io');
+var $router = global.$router = require('koa-router');
+var $redis = global.$redis = require('redis');
+var $co = global.$co = require('co');
+var $uuid = global.$uuid = require('node-uuid');
+var $qiniu = global.$qiniu = require('qiniu');
+var $crypto = global.$crypto = require('crypto');
 
 //自定义库引入
+global._mime = require('./mymodules/mime.js');
 global._ctnu = require('./mymodules/ctnu.js');
 global._fns = require('./mymodules/fns.js');
 global._cfg = require('./mymodules/cfg.js');
 global._rds = require('./mymodules/rds.js');
 global._usr = require('./mymodules/usr.js');
+global._pie = require('./mymodules/pie.js');
 global._rotr = require('./mymodules/rotr.js');
 global._mdwr = require('./mymodules/mdwr.js');
+global._qn = require('./mymodules/qn.js');
 
 
 //服务器对象
-var koaSvr = app.koaApp = $koa();
-var httpSvr = app.httpApp = $http.createServer(koaSvr.callback());
+var koaSvr = app.koaSvr = $koa();
+var httpSvr = app.httpSvr = $http.createServer(koaSvr.callback());
 var sktSvr = app.sktSvr = $sktio(httpSvr);
 
 
@@ -46,7 +46,7 @@ httpSvr.listen(80);
 httpSvr.on('error', function (err) {
     switch (err.code) {
     case 'EACCES':
-        httpSvr.listen(8000);
+        httpSvr.listen(8088);
         console.log('App started on localhost server.');
         break;
     default:
@@ -55,11 +55,28 @@ httpSvr.on('error', function (err) {
     };
 });
 
+//使用body解析器
+koaSvr.use($bodyParser({
+    onerror: function (err, ctx) {
+        ctx.request.body = undefined;
+        __errhdlr(err);
+    }
+}));
+
 //http请求中间件
-koaSvr.use(_mdwr)
+koaSvr.use(_mdwr);
 
 //http请求的路由控制
 koaSvr.use(_rotr.routes());
+
+/*http请求中间件示例
+koaSvr.use(test);
+function* test(next) {
+    console.log('>After router', this.xdat);
+    this.xdat.test='will be trans to next midware';
+    yield next;
+}
+*/
 
 
 
