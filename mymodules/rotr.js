@@ -35,7 +35,7 @@ function* pageApp(next) {
     this.xdat.pieUrl = pieUrl;
 
     //发送嵌有app.js路径的html模版;<body>部分应该被app替换;默认自带jquery
-    this.body = '<! DOCTYPE HTML><html><head><title>' + pienm + '</title><script src="//cdn.bootcss.com/jquery/3.0.0-beta1/jquery.min.js"></script></head><body><div id="_pieLocator" pieUrl="' + pieUrl + '" style="text-align:center;margin-top:20%;line-height:1.5em">Welcome to jscodepie.com!<br>App[' + pienm + '] is loading... <br> [' + pieUrl + '] </div><script src="' + pieUrl + '"></script></body></html>';
+    this.body = '<! DOCTYPE HTML><html><head><title>' + pienm + '</title><script data-main="' + pieUrl + '" src="//cdn.bootcss.com/require.js/2.1.22/require.min.js"></script></head><body><div id="_pieLocator" pieUrl="' + pieUrl + '"><div id="_pieTemp" style="text-align:center;margin-top:20%;line-height:1.5em">Welcome to jscodepie.com!<br>App[' + pienm + '] is loading... <br> [' + pieUrl + '] </div></div></body></html>';
     yield next;
 };
 
