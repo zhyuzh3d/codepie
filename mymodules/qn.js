@@ -27,14 +27,22 @@ _cfg.xcfgCo().then(function (xcfg) {
 */
 _rotr.apis.getUploadToken = function getUploadTokenCo() {
     var ctx = this;
+
     var co = $co(function* () {
         var uid = ctx.xdat.uid;
+        var filenm = ctx.query.file;
+        if (!filenm || filenm == '') throw Error('File cannot be undefeind!');
+
         //根据uid授权路径的token
-        var pubPutPolicy = new $qiniu.rs.PutPolicy(cfg.BucketName + ctx.xdat.uid + '/');
+        var key = ctx.xdat.uid + '/' + filenm;
+        var pubPutPolicy = new $qiniu.rs.PutPolicy(cfg.BucketName + ':' + key);
         pubPutPolicy.returnBody = '{"name": $(fname),"size": $(fsize),"type": $(mimeType),"color": $(exif.ColorSpace.val),"key":$(key),"w": $(imageInfo.width),"h": $(imageInfo.height),"hash": $(etag)}';
         var token = pubPutPolicy.token();
         ctx.body = {
-            uptoken: token
+            uid: ctx.xdat.uid,
+            key: key,
+            domain: cfg.BucketDomain,
+            uptoken: token,
         };
         ctx.xdat.uploadToken = token;
         return ctx;
@@ -63,7 +71,6 @@ _rotr.apis.uploadData = function uploadDataCo(next) {
 
         //token获取
         var filekey = uid + '/';
-        //        var filekey = '/' + uid + '/';
         if (reqbd.file && reqbd.file.toString() && reqbd != '') {
             filekey += reqbd.file;
         } else {

@@ -3,7 +3,6 @@
 
 var _pie = {};
 
-
 _usr.newPieCo = newPieCo;
 /*创建一个pie键hash,名称pie-appname;
 自动增加_cls（zset）键的pie分数，如果没有自动补充

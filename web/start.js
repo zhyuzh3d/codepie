@@ -14,9 +14,9 @@ require(['jquery'], function ($) {
     });
 
     var grpStart = function () {
-        var grp = $('<div style="text-align:center;margin-top:20%;line-height:1.5em"></div>');
-        grp.append($('<div>代码派!</div>'));
-        grp.append($('<div>Welcome to js codepie !</div>'));
+        var grp = $('<div style="text-align:center;margin-top:15%;line-height:1.5em"></div>');
+        grp.append($('<div style="font-weight:bold;font-size:18px;line-height:36px">代码派 !</div>'));
+        grp.append($('<div style="line-height:16px">Welcome to js codepie !</div>'));
         grp.append($('<div style="font-size:12px">网站建设中，即将开启...</div><br>'));
         return grp;
     }();

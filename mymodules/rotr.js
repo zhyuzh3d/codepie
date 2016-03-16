@@ -35,7 +35,7 @@ function* pageApp(next) {
     this.xdat.pieUrl = pieUrl;
 
     //发送嵌有app.js路径的html模版;<body>部分应该被app替换;默认自带jquery
-    this.body = '<! DOCTYPE HTML><html><head><title>' + pienm + '</title><script data-main="' + pieUrl + '" src="//cdn.bootcss.com/require.js/2.1.22/require.min.js"></script></head><body><div id="_pieLocator" pieUrl="' + pieUrl + '"><div id="_pieTemp" style="text-align:center;margin-top:20%;line-height:1.5em">Welcome to jscodepie.com!<br>App[' + pienm + '] is loading... <br> [' + pieUrl + '] </div></div></body></html>';
+    this.body = '<! DOCTYPE HTML><html><head><title>' + pienm + '</title><script data-main="' + pieUrl + '" src="//cdn.bootcss.com/require.js/2.1.22/require.min.js"></script></head><body><div id="_pieLocator" pieUrl="' + pieUrl + '"><div id="_pieTemp" style="text-align:center;margin-top:15%;line-height:1.5em">Welcome to jscodepie.com!<br>App[' + pienm + '] is loading... <br> [' + pieUrl + '] </div></div></body></html>';
     yield next;
 };
 
@@ -103,6 +103,20 @@ _rotr.get('/web/sample.js', function* (next) {
     var dat = $fs.readFileSync('./web/sample.js');
     //读取图片文件返回
     this.body = dat;
+});
+
+//访问首页piejs的请求，缓存
+_rotr.get('/web/wpie.js', function* (next) {
+    var dat = $fs.readFileSync('./web/wpie.js');
+    //读取图片文件返回
+    this.body = dat;
+});
+
+//访问首页qiniu的请求，缓存
+var qndat = $fs.readFileSync('./web/qiniu.js');
+_rotr.get('/web/qiniu.js', function* (next) {
+    //读取图片文件返回
+    this.body = qndat;
 });
 
 
