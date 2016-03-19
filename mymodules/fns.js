@@ -122,6 +122,51 @@ function __newMsg(code, text, data) {
 };
 
 
+/*服务端向其他地址发起http请求的promise
+成功执行resolvefn({headers:{...},body:'...'})
+options应包含所有必需参数如hostname，method等等
+ */
+_fns.httpReqPrms = httpReqPrms;
+
+function httpReqPrms(options, bodydata) {
+    var prms = new Promise(function (resolvefn, rejectfn) {
+        var req = $http.request(options, (res) => {
+            if (res.statusCode != 200) {
+                rejectfn(new Error('Target server return err:' + res.statusCode));
+            } else {
+                res.setEncoding('utf8');
+                var dat = {
+                    headers: res.headers,
+                    body: '',
+                };
+                res.on('data', (dt) => {
+                    dat.body += dt;
+                });
+                res.on('end', () => {
+                    resolvefn(dat);
+                })
+            };
+        });
+
+        req.on('error', (e) => {
+            rejectfn(new Error('Request failed:' + e.message));
+        });
+
+        if (bodydata) {
+            req.write(bodydata);
+        };
+
+        req.end();
+    });
+
+
+
+    return prms;
+};
+
+
+
+
 
 //导出模块
 module.exports = _fns;

@@ -22,33 +22,94 @@ _cfg.xcfgCo().then(function (xcfg) {
 
 
 /*http接口：获取上传token的接口
-存储锁定/uid/...
+存储锁定uid/...
 每个用户单独的路径以用户id为编号，格式'../455/'
+req:{fpath:'...'}
 */
 _rotr.apis.getUploadToken = function getUploadTokenCo() {
     var ctx = this;
 
     var co = $co(function* () {
         var uid = ctx.xdat.uid;
-        var filenm = ctx.query.file;
-        if (!filenm || filenm == '') throw Error('File cannot be undefeind!');
+        var fpath = ctx.query.fpath || ctx.request.body.fpath;
+        if (!fpath || fpath == '') throw Error('File cannot be undefeind!');
 
         //根据uid授权路径的token
-        var key = ctx.xdat.uid + '/' + filenm;
+        var key = ctx.xdat.uid + '/' + fpath;
         var pubPutPolicy = new $qiniu.rs.PutPolicy(cfg.BucketName + ':' + key);
         pubPutPolicy.returnBody = '{"name": $(fname),"size": $(fsize),"type": $(mimeType),"color": $(exif.ColorSpace.val),"key":$(key),"w": $(imageInfo.width),"h": $(imageInfo.height),"hash": $(etag)}';
         var token = pubPutPolicy.token();
-        ctx.body = {
+        var respdat = {
             uid: ctx.xdat.uid,
             key: key,
             domain: cfg.BucketDomain,
             uptoken: token,
         };
+        ctx.body = __newMsg(1, 'OK', respdat);
         ctx.xdat.uploadToken = token;
         return ctx;
     });
     return co;
 };
+
+
+/*获取文件夹列表
+锁定用户的uid/folder路径
+marker标识分页位置，即上一次显示到第几个
+req:{path:'myfolder/subfolder/',limit:100,marker:'eyJjIjowLCJrIjoiM...'};
+res:{}
+*/
+_rotr.apis.getFileList = function getUploadTokenCo() {
+    var ctx = this;
+
+    var co = $co(function* () {
+        var uid = ctx.xdat.uid;
+
+        var optpath = '/list?bucket=jscodepie&prefix=' + uid + '/';
+
+        //个人子文件夹，不要以/开头
+        var path = ctx.query.path || ctx.request.body.path;
+        if (path && path != '') optpath += path;
+
+        var limit = ctx.query.limit || ctx.request.body.limit;
+        if (!limit) limit = 100;
+        optpath += '&limit=' + limit;
+
+        var marker = ctx.query.marker || ctx.request.body.marker;
+        if (marker && marker != '') optpath += '&marker=' + marker;
+
+        //根据uid授权路径的token
+        var options = {
+            hostname: 'rsf.qbox.me',
+            port: 80,
+            path: optpath,
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': '',
+                'limit': limit,
+                'marker': marker,
+            },
+        };
+
+        //计算token
+        options.headers.Authorization = $qiniu.util.generateAccessToken(options.path, null);
+
+        var prms = _fns.httpReqPrms(options);
+
+        var res = yield prms;
+        var bdobj = JSON.safeParse(res.body);
+        bdobj.domain = cfg.BucketDomain;
+        ctx.body = bdobj;
+        return ctx;
+
+    });
+    return co;
+};
+
+
+
+
 
 
 /*http接口POST：上传字符串或数据，存储到七牛，返回文件url
@@ -90,6 +151,13 @@ _rotr.apis.uploadData = function uploadDataCo(next) {
     });
     return co;
 };
+
+
+
+
+
+
+
 
 
 //导出模块

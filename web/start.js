@@ -22,4 +22,14 @@ require(['jquery'], function ($) {
     }();
     grpStart.appendTo(bd);
     grpStart.hide().fadeIn(1000);
+
+    $('<style>a:link,a:visited{text-decoration:none} a:hover{text-decoration:none}</style>').appendTo(bd)
+    var icpdiv = $('<div style="font-size:12px;color:#666;text-align:center"></div').appendTo(bd);
+    icpdiv.css({
+        'position':'absolute',
+        'bottom':'10px',
+        'text-align':'center',
+        'width':'100%',
+    })
+    $('<a href="http://www.miitbeian.gov.cn">[苏ICP备15036923号-2]</a>').appendTo(icpdiv);
 });

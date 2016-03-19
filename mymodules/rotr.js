@@ -52,32 +52,34 @@ _rotr.apis = {};
 
 /*处理Api请求*/
 function* procApi(next) {
+    var ctx = this;
+
     //api请求不生成ukey，但写入xdat
-    this.xdat.ukey = this.cookies.get('ukey');
+    ctx.xdat.ukey = ctx.cookies.get('ukey');
 
     //所有api请求必须有uid才能继续
-    yield _usr.getUidByHttpCC.call(this);
-    if (!this.xdat.uid) {
-        this.body = __errMsgs.usrUnkown;
+    yield _usr.getUidByHttpCC.call(ctx);
+    if (!ctx.xdat.uid) {
+        ctx.body = __errMsgs.usrUnkown;
         yield next;
         return;
     };
 
-    var apinm = this.params.apiname;
+    var apinm = ctx.params.apiname;
     var apifn = _rotr.apis[apinm];
 
     if (apifn && apifn.constructor == Function) {
         try {
-            yield apifn.call(this, next).then(null, function (err) {
+            yield apifn.call(ctx, next).then(null, function (err) {
                 //api异常捕获
-                this.body = __newMsg(__errCode.APIERR, apinm + ' process failed:' + err.message);
+                ctx.body = __newMsg(__errCode.APIERR, apinm + ' process failed:' + err.message);
             });
         } catch (err) {
             __errhdlr(err);
-            this.body = __newMsg(__errCode.APIERR, 'Api process failed:' + apinm)
+            ctx.body = __newMsg(__errCode.APIERR, 'Api process failed:' + apinm)
         };
     } else {
-        this.body = __newMsg(__errCode.NOTFOUND, 'Api not found:' + apinm);
+        ctx.body = __newMsg(__errCode.NOTFOUND, 'Api not found:' + apinm);
     };
     yield next;
 };
