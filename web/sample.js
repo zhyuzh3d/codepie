@@ -21,12 +21,44 @@ define(['jquery', 'jform', 'qiniu'], function ($, jform, qiniu) {
     pietop.append($('<div>公共接口的示例</div><br>'));
     $('#_pieTemp').remove();
 
+    /*创建App（pie）的接口*/
+    var grpCreatePie = function () {
+        var grp = $('<div id="grpCreatePie" style="margin:16px"></div>').appendTo(bd);
+        grp.append($('<hr>'));
+        grp.append($('<h3>创建pieApp的借口[../api/createPie]</h3>'));
+
+        var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
+        fm.attr('action', '../api/createPie');
+        $('<label>name</label>').appendTo(fm);
+        var pathipt = $('<input name="name">').appendTo(fm);
+        var sendbtn = $('<button style="padding:8px 16px">点击创建一个pie应用</button>').appendTo(grp);
+
+        $('<br><label>RES:</label><br>').appendTo(grp);
+        var resdiv = $('<div>...</div>').appendTo(grp);
+
+
+        sendbtn.click(function (e) {
+            fm.ajaxSubmit({
+                type: 'POST',
+                success: function (res) {
+                    console.log('createpie', res);
+                    resdiv.html(JSON.stringify(res));
+                },
+            });
+        });
+
+
+        return grp;
+    }();
+
+
+
 
     /*获取文件列表*/
     var grpGetFileList = function () {
         var grp = $('<div id="grpGetFileList" style="margin:16px"></div>').appendTo(bd);
         grp.append($('<hr>'));
-        grp.append($('<h3>获取文件列表GetFileList</h3>'))
+        grp.append($('<h3>获取文件列表的接口[../api/getFileList]</h3>'));
 
         var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
         fm.attr('action', '../api/getFileList');
@@ -69,7 +101,7 @@ define(['jquery', 'jform', 'qiniu'], function ($, jform, qiniu) {
     var grpUploadFile = function () {
         var grp = $('<div id="grpUploadFile" style="margin:16px"></div>').appendTo(bd);
         grp.append($('<hr>'));
-        grp.append($('<h3>上传文件,使用uploadToken</h3>'))
+        grp.append($('<h3>上传文件方法,使用uploadToken接口[../api/getUploadToken]</h3>'))
 
         var fm = $('<form method="post" action="http://upload.qiniu.com/" enctype="multipart/form-data"></form>');
         $('<label>file</label>').appendTo(fm);
@@ -116,7 +148,7 @@ define(['jquery', 'jform', 'qiniu'], function ($, jform, qiniu) {
     var grpUploadToken = function () {
         var grp = $('<div id="grpUploadToken" style="margin:16px"></div>').appendTo(bd);
         grp.append($('<hr>'));
-        grp.append($('<h3>获取上传文件的uploadToken[../api/getUploadToken]</h3>'));
+        grp.append($('<h3>获取上传文件的接口[../api/getUploadToken]</h3>'));
 
         var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
         fm.attr('action', '../api/getUploadToken');
@@ -168,6 +200,7 @@ define(['jquery', 'jform', 'qiniu'], function ($, jform, qiniu) {
                 file: grp.fileIpt.val(),
             };
             $.post("../api/uploadData", data, function (res) {
+                console.log("../api/uploadData", res);
                 var url = encodeURI(res.data.url);
                 var resstr = JSON.stringify(res);
                 resdiv.html(resstr + '<br><a href="' + url + '" target="_blank">' + url + '</a>');

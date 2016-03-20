@@ -29,8 +29,8 @@ global._fns = require('./mymodules/fns.js');
 global._cfg = require('./mymodules/cfg.js');
 global._rds = require('./mymodules/rds.js');
 global._usr = require('./mymodules/usr.js');
-global._pie = require('./mymodules/pie.js');
 global._rotr = require('./mymodules/rotr.js');
+global._pie = require('./mymodules/pie.js');
 global._mdwr = require('./mymodules/mdwr.js');
 global._qn = require('./mymodules/qn.js');
 

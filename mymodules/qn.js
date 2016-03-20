@@ -9,16 +9,18 @@ var cfg = {
     BucketName: "jscodepie",
     BucketDomain: "http://files.jscodepie.com/"
 };
+_qn.cfg = cfg;
 
 /*初始化设置,依赖xcfg*/
 _cfg.xcfgCo().then(function (xcfg) {
     $qiniu.conf.ACCESS_KEY = xcfg.qiniu.ACCESS_KEY;
     $qiniu.conf.SECRET_KEY = xcfg.qiniu.SECRET_KEY;
-    _app.httpSvr.listen(cfg.Port, function () {
-        __infohdlr("qiniu:listening on port:" + cfg.Port);
+    _app.httpSvr.listen(_qn.cfg.Port, function () {
+        __infohdlr("qiniu:listening on port:" + _qn.cfg.Port);
     });
     return;
 }).then(null, __errhdlr);
+
 
 
 /*http接口：获取上传token的接口
@@ -26,7 +28,7 @@ _cfg.xcfgCo().then(function (xcfg) {
 每个用户单独的路径以用户id为编号，格式'../455/'
 req:{fpath:'...'}
 */
-_rotr.apis.getUploadToken = function getUploadTokenCo() {
+_rotr.apis.getUploadToken = function () {
     var ctx = this;
 
     var co = $co(function* () {
@@ -36,13 +38,11 @@ _rotr.apis.getUploadToken = function getUploadTokenCo() {
 
         //根据uid授权路径的token
         var key = ctx.xdat.uid + '/' + fpath;
-        var pubPutPolicy = new $qiniu.rs.PutPolicy(cfg.BucketName + ':' + key);
-        pubPutPolicy.returnBody = '{"name": $(fname),"size": $(fsize),"type": $(mimeType),"color": $(exif.ColorSpace.val),"key":$(key),"w": $(imageInfo.width),"h": $(imageInfo.height),"hash": $(etag)}';
-        var token = pubPutPolicy.token();
+        var token = _qn.genUploadToken(key);
         var respdat = {
             uid: ctx.xdat.uid,
             key: key,
-            domain: cfg.BucketDomain,
+            domain: _qn.cfg.BucketDomain,
             uptoken: token,
         };
         ctx.body = __newMsg(1, 'OK', respdat);
@@ -52,6 +52,18 @@ _rotr.apis.getUploadToken = function getUploadTokenCo() {
     return co;
 };
 
+/*生成uptoken的函数*/
+_qn.genUploadToken = genUploadToken;
+
+function genUploadToken(key) {
+    var pubPutPolicy = new $qiniu.rs.PutPolicy(_qn.cfg.BucketName + ':' + key);
+    pubPutPolicy.returnBody = '{"name": $(fname),"size": $(fsize),"type": $(mimeType),"color": $(exif.ColorSpace.val),"key":$(key),"w": $(imageInfo.width),"h": $(imageInfo.height),"hash": $(etag)}';
+    var token = pubPutPolicy.token();
+    return token;
+};
+
+
+
 
 /*获取文件夹列表
 锁定用户的uid/folder路径
@@ -59,23 +71,39 @@ marker标识分页位置，即上一次显示到第几个
 req:{path:'myfolder/subfolder/',limit:100,marker:'eyJjIjowLCJrIjoiM...'};
 res:{}
 */
-_rotr.apis.getFileList = function getUploadTokenCo() {
+_rotr.apis.getFileList = function () {
     var ctx = this;
 
     var co = $co(function* () {
         var uid = ctx.xdat.uid;
 
-        var optpath = '/list?bucket=jscodepie&prefix=' + uid + '/';
-
-        //个人子文件夹，不要以/开头
+        var prefix = uid + '/';
         var path = ctx.query.path || ctx.request.body.path;
-        if (path && path != '') optpath += path;
-
+        if (path && path != '') prefix += path;
         var limit = ctx.query.limit || ctx.request.body.limit;
+        var marker = ctx.query.marker || ctx.request.body.marker;
+
+        var res = yield _qn.getFileListCo(prefix, limit, marker);
+        var bdobj = JSON.safeParse(res.body);
+        bdobj.domain = _qn.cfg.BucketDomain;
+        ctx.body = bdobj;
+        return ctx;
+    });
+    return co;
+};
+
+
+
+/*单独函数，获取文件列表
+prefix应该带uid，类似'4/myfolder/'
+*/
+_qn.getFileListCo = getFileListCo;
+
+function getFileListCo(prefix, limit, marker) {
+    var co = $co(function* () {
+        var optpath = '/list?bucket=jscodepie&prefix=' + prefix;
         if (!limit) limit = 100;
         optpath += '&limit=' + limit;
-
-        var marker = ctx.query.marker || ctx.request.body.marker;
         if (marker && marker != '') optpath += '&marker=' + marker;
 
         //根据uid授权路径的token
@@ -87,8 +115,6 @@ _rotr.apis.getFileList = function getUploadTokenCo() {
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Authorization': '',
-                'limit': limit,
-                'marker': marker,
             },
         };
 
@@ -98,14 +124,12 @@ _rotr.apis.getFileList = function getUploadTokenCo() {
         var prms = _fns.httpReqPrms(options);
 
         var res = yield prms;
-        var bdobj = JSON.safeParse(res.body);
-        bdobj.domain = cfg.BucketDomain;
-        ctx.body = bdobj;
-        return ctx;
 
+        return res;
     });
     return co;
 };
+
 
 
 
@@ -117,42 +141,49 @@ _rotr.apis.getFileList = function getUploadTokenCo() {
 req:{data,file};如果没有data则为空字符串，如果没有file则随机一个md5文件名； 自动判断扩展名
 res:{url:'bucketdomain/uid/file}
 */
-_rotr.apis.uploadData = function uploadDataCo(next) {
+_rotr.apis.uploadData = function () {
     var ctx = this;
     var co = $co(function* () {
         var uid = ctx.xdat.uid;
 
-        var extra = new $qiniu.io.PutExtra();
-        var reqbd = ctx.request.body; //POST对象
-
-        //mime文件类型
-        var fext = /\.[^\.]+/.exec(reqbd.file);
-        fext = (fext && fext.length > 0) ? fext[0] : '';
-        extra.mimeType = _mime[fext];
-
-        //token获取
+        var data = ctx.request.body.data || ctx.query.data;
+        var file = ctx.request.body.file || ctx.query.file;
         var filekey = uid + '/';
-        if (reqbd.file && reqbd.file.toString() && reqbd != '') {
-            filekey += reqbd.file;
-        } else {
-            filekey += __md5();
-        };
-        var policy = new $qiniu.rs.PutPolicy(cfg.BucketName + ':' + filekey);
+        (file) ? filekey += file: filekey += __md5();
+        var extra = new $qiniu.io.PutExtra();
 
-        //存储到七牛
-        if (!reqbd.data) reqbd.data = '';
-        var res = yield _ctnu($qiniu.io.put, policy.token(), filekey, reqbd.data, extra);
+        var res = yield _qn.uploadDataCo(data, filekey, extra);
         if (!res || !res.key) throw Error('Upload data failed,cannot get url');
 
         ctx.xdat.uploadData = res;
         ctx.body = __newMsg(1, 'ok', {
-            url: cfg.BucketDomain + res.key,
+            url: _qn.cfg.BucketDomain + res.key,
         });
     });
     return co;
 };
 
 
+/*单独函数uploaddata
+返回七牛的结果*/
+_qn.uploadDataCo = uploadDataCo;
+
+function uploadDataCo(dat, filekey, extra) {
+    var co = $co(function* () {
+        //mime文件类型
+        var fext = /\.[^\.]+/.exec(filekey);
+        fext = (fext && fext.length > 0) ? fext[0] : '';
+        extra.mimeType = _mime[fext];
+
+        //token获取
+        var policy = new $qiniu.rs.PutPolicy(_qn.cfg.BucketName + ':' + filekey);
+        var token = policy.token();
+        var res = yield _ctnu($qiniu.io.put, token, filekey, dat, extra);
+        console.log('res', res);
+        return res;
+    });
+    return co;
+};
 
 
 
