@@ -34,6 +34,7 @@ define(['jquery', 'jform', 'qiniu'], function ($, jform, qiniu) {
         var sendbtn = $('<button style="padding:8px 16px">点击创建一个pie应用</button>').appendTo(grp);
 
         $('<br><label>RES:</label><br>').appendTo(grp);
+        var resa = $('<a target="_blank"></a>').appendTo(grp);
         var resdiv = $('<div>...</div>').appendTo(grp);
 
 
@@ -43,10 +44,13 @@ define(['jquery', 'jform', 'qiniu'], function ($, jform, qiniu) {
                 success: function (res) {
                     console.log('createpie', res);
                     resdiv.html(JSON.stringify(res));
+                    if (res.code == 1) {
+                        resa.html(res.data.url);
+                        resa.attr('href', res.data.url);
+                    };
                 },
             });
         });
-
 
         return grp;
     }();

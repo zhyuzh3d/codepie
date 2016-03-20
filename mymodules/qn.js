@@ -134,8 +134,6 @@ function getFileListCo(prefix, limit, marker) {
 
 
 
-
-
 /*http接口POST：上传字符串或数据，存储到七牛，返回文件url
 自动覆盖已有文件，存储目录锁定/uid/...
 req:{data,file};如果没有data则为空字符串，如果没有file则随机一个md5文件名； 自动判断扩展名
@@ -150,15 +148,15 @@ _rotr.apis.uploadData = function () {
         var file = ctx.request.body.file || ctx.query.file;
         var filekey = uid + '/';
         (file) ? filekey += file: filekey += __md5();
-        var extra = new $qiniu.io.PutExtra();
 
-        var res = yield _qn.uploadDataCo(data, filekey, extra);
+        var res = yield _qn.uploadDataCo(data, filekey);
         if (!res || !res.key) throw Error('Upload data failed,cannot get url');
 
         ctx.xdat.uploadData = res;
         ctx.body = __newMsg(1, 'ok', {
             url: _qn.cfg.BucketDomain + res.key,
         });
+        return ctx;
     });
     return co;
 };
@@ -173,13 +171,13 @@ function uploadDataCo(dat, filekey, extra) {
         //mime文件类型
         var fext = /\.[^\.]+/.exec(filekey);
         fext = (fext && fext.length > 0) ? fext[0] : '';
+        if (!extra) extra = new $qiniu.io.PutExtra();
         extra.mimeType = _mime[fext];
 
         //token获取
         var policy = new $qiniu.rs.PutPolicy(_qn.cfg.BucketName + ':' + filekey);
         var token = policy.token();
         var res = yield _ctnu($qiniu.io.put, token, filekey, dat, extra);
-        console.log('res', res);
         return res;
     });
     return co;
