@@ -5,6 +5,8 @@ JSON.safeParse/JSON.sparse;
 var _fns = {};
 
 
+
+//基础函数扩充---------------------------------------
 /*扩展JSON.safeParse*/
 JSON.safeParse = JSON.sparse = function (str) {
     try {
@@ -93,6 +95,7 @@ function __md5(str, dig) {
     return $crypto.createHash('md5').update(str).digest(dig)
 };
 
+
 /*sha1加密
 如果str为空，自动生成一个uuid
 digest类型，hex默认,base64
@@ -107,7 +110,7 @@ function __sha1(str, dig) {
 
 
 
-/*生成不重复的key*/
+/*生成标准的msg*/
 global.__newMsg = __newMsg;
 
 function __newMsg(code, text, data) {
@@ -122,6 +125,34 @@ function __newMsg(code, text, data) {
 };
 
 
+//补足cfg的函数设定参数--------------------------------
+/*外部的密匙文件读取到xcfg对象*/
+_cfg.xcfg = function () {
+    var xstr = $fs.readFileSync('../xcfg.json', 'utf-8');
+    var xobj = JSON.parse(xstr);
+    return xobj;
+}();
+
+/*读取外部密匙文件的函数,返回promise*/
+_cfg.xcfgCo = function () {
+    var co = $co(function* () {
+        var xstr = yield _ctnu($fs.readFile, '../xcfg.json', 'utf-8');
+        var xcfg = JSON.sparse(xstr);
+        return xcfg;
+    }).then(null, function (err) {
+        __errhdlr(err);
+        return {};
+    })
+    return co;
+};
+
+/*常用错误信息*/
+var __errMsgs = global.__errMsgs = {
+    usrUnkown: __newMsg(__errCode.NOUSR, 'You are not signed in.'),
+};
+
+
+//重要函数------------------------------------
 /*服务端向其他地址发起http请求的promise
 成功执行resolvefn({headers:{...},body:'...'})
 options应包含所有必需参数如hostname，method等等
@@ -159,10 +190,42 @@ function httpReqPrms(options, bodydata) {
         req.end();
     });
 
-
-
     return prms;
 };
+
+
+
+/*向指定目标发送一封邮件
+默认以_cfg.xcfg.serMail.addr为发送邮箱
+*/
+var mailTransPort = $mailer.createTransport({
+    host: _cfg.xcfg.serMail.host,
+    port: _cfg.xcfg.serMail.port,
+    auth: {
+        user: _cfg.xcfg.serMail.addr,
+        pass: _cfg.xcfg.serMail.pw,
+    },
+});
+
+/*可以使用其它传输器，默认为serMail
+ */
+_fns.sendMail = sendMail;
+
+function sendMail(tarmail, tit, cont) {
+    var prms = new Promise(function (resolvefn, rejectfn, transport) {
+        if (!transport) transport = mailTransPort;
+        transport.sendMail({
+            from: 'jscodepie servicegroup<' + _cfg.xcfg.serMail.addr + '>',
+            to: tarmail,
+            subject: tit,
+            html: cont
+        }, function (err, res) {
+            (err) ? rejectfn(err): resolvefn(res);
+        });
+    });
+    return prms;
+};
+
 
 
 

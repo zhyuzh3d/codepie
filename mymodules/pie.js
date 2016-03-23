@@ -13,7 +13,7 @@ var _pie = {};
 req:{name:'...'};
 res:{id:100,url:'...'};
 */
-_rotr.apis.createPie = function createPie() {
+_rotr.apis.createPie = function () {
     var ctx = this;
     var co = $co(function* () {
         var uid = ctx.xdat.uid;
@@ -88,6 +88,10 @@ function createPieCo(uid, name) {
     });
     return co;
 };
+
+
+
+
 
 
 

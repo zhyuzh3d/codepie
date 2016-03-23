@@ -10,12 +10,19 @@ _rotr = new $router();
 
 //访问pie（app）的请求
 _rotr.get('pie', '/pie/:appname', pageApp);
+_rotr.get('pie', '/pie/:puid/:appname', pageApp);
 _rotr.get('app', '/app/:appname', pageApp);
+_rotr.get('app', '/app/:puid/:appname', pageApp);
 
-/*生成app页面*/
+/*生成app页面;如果有uid那么使用，如果没有那么就设定为1*/
 function* pageApp(next) {
-    var pienm = this.xdat.pieName = this.params.appname;
-    var piekeynm = this.xdat.pieKey = 'pie-' + this.params.appname;
+    var puid = this.xdat.pieUid = this.params.puid;
+    if (!puid) puid = 1;
+    var pienm = this.xdat.pieName = puid + '/' + this.params.appname;
+
+    //从_map:pie.name:pie.id取pieid
+    var pieid = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.name:pie.id', pienm);
+    var piekeynm = this.xdat.pieKey = 'pie-' + pieid;
 
     //将当前pie写入cookie，以备api检查权限
     this.cookies.set('pie', pienm);
@@ -23,7 +30,7 @@ function* pageApp(next) {
     //检测是否存在账号，如果没有则创建一个新用户，并将ukey写入客户端cookie
     var ukey = this.cookies.get('ukey');
     if (!ukey) {
-        var usr = yield _usr.newUsrCo();
+        var usr = yield _usr.createUsrCo();
         this.xdat.isNewUsr = true;
         this.cookies.set('ukey', usr.ukey);
         ukey = usr.ukey;
@@ -33,11 +40,14 @@ function* pageApp(next) {
     //从rds数据库获取app的数据（js文件地址）
     var pieUrl = yield _ctnu([_rds.cli, 'hget'], piekeynm, 'url');
     this.xdat.pieUrl = pieUrl;
+    var pienmshort = pienm.replace(/^\d\//, '');
+    console.log('>>pieshort', pienmshort);
 
     //发送嵌有app.js路径的html模版;<body>部分应该被app替换;默认自带jquery
-    this.body = '<! DOCTYPE HTML><html><head><title>' + pienm + '</title><script data-main="' + pieUrl + '" src="//cdn.bootcss.com/require.js/2.1.22/require.min.js"></script></head><body><div id="_pieLocator" pieUrl="' + pieUrl + '"><div id="_pieTemp" style="text-align:center;margin-top:15%;line-height:1.5em">Welcome to jscodepie.com!<br>App[' + pienm + '] is loading... <br> [' + pieUrl + '] </div></div></body></html>';
+    this.body = '<! DOCTYPE HTML><html><head><title>' + pienmshort + '</title><script data-main="' + pieUrl + '" src="//cdn.bootcss.com/require.js/2.1.22/require.min.js"></script></head><body><div id="_pieLocator" pieUrl="' + pieUrl + '"><div id="_pieTemp" style="text-align:center;margin-top:15%;line-height:1.5em">Welcome to jscodepie.com!<br>App[' + pienm + '] is loading... <br> [' + pieUrl + '] </div></div></body></html>';
     yield next;
 };
+
 
 
 //访问api的get/post请求
@@ -94,18 +104,24 @@ _rotr.get('/favicon.ico', function* (next) {
 });
 
 //访问首页start的请求，暂不缓存
-_rotr.get('/web/start.js', function* (next) {
+_rotr.get('/web/start.js', piestart);
+_rotr.get('/pie/web/start.js', piestart);
+
+function* piestart(next) {
     var dat = $fs.readFileSync('./web/start.js');
     //读取图片文件返回
     this.body = dat;
-});
+}
 
 //访问首页start的请求，暂不缓存
-_rotr.get('/web/sample.js', function* (next) {
+_rotr.get('/web/sample.js', piesample);
+_rotr.get('/pie/web/sample.js', piesample);
+
+function* piesample(next) {
     var dat = $fs.readFileSync('./web/sample.js');
     //读取图片文件返回
     this.body = dat;
-});
+}
 
 //访问首页piejs的请求，缓存
 _rotr.get('/web/wpie.js', function* (next) {

@@ -20,16 +20,17 @@ var $redis = global.$redis = require('redis');
 var $co = global.$co = require('co');
 var $uuid = global.$uuid = require('node-uuid');
 var $qiniu = global.$qiniu = require('qiniu');
+var $mailer = global.$mailer = require('nodemailer');
 var $crypto = global.$crypto = require('crypto');
 
 //自定义库引入
 global._mime = require('./mymodules/mime.js');
 global._ctnu = require('./mymodules/ctnu.js');
-global._fns = require('./mymodules/fns.js');
 global._cfg = require('./mymodules/cfg.js');
+global._fns = require('./mymodules/fns.js');
 global._rds = require('./mymodules/rds.js');
-global._usr = require('./mymodules/usr.js');
 global._rotr = require('./mymodules/rotr.js');
+global._usr = require('./mymodules/usr.js');
 global._pie = require('./mymodules/pie.js');
 global._mdwr = require('./mymodules/mdwr.js');
 global._qn = require('./mymodules/qn.js');

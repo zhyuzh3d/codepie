@@ -15,10 +15,7 @@ var __errCode = global.__errCode = {
     APIERR: 8788, //程序异常，未知错误
 };
 
-/*常用错误信息*/
-var __errMsgs = global.__errMsgs = {
-    usrUnkown: __newMsg(__errCode.NOUSR, 'You are not signed in.'),
-};
+
 
 
 /*用户相遇对pie的权限*/
@@ -36,29 +33,21 @@ var __usrPower = global.__usrPower = {
 
 
 
-/*外部的密匙文件读取到xcfg对象*/
-_cfg.xcfg = function () {
-    var xstr = $fs.readFileSync('../xcfg.json', 'utf-8');
-    var xobj = JSON.sparse(xstr);
-    return xobj;
-}();
 
-/*读取外部密匙文件的函数,返回promise*/
-_cfg.xcfgCo = function () {
-    var co = $co(function* () {
-        var xstr = yield _ctnu($fs.readFile, '../xcfg.json', 'utf-8');
-        var xcfg = JSON.sparse(xstr);
-        return xcfg;
-    }).then(null, function (err) {
-        __errhdlr(err);
-        return {};
-    })
-    return co;
+
+/*各种正则表达式*/
+_cfg.regx = {
+    mail: /^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/,
+    code6: /^\d{6}$/,
+    pw: /^.{6,16}$/,
 };
 
-
-
-
+/*
+    _cfg.regx = {
+    appName: /[^_]*([0-9a-zA-Z]){3,12}/, //不包含下划线，3～12个字符,数字英文双字节(包含中文)
+    usrNick: /[^_]*([^x00-xff]{2,}|[0-9a-zA-Z]{3,12})/, //用户昵称不包含下划线，3～12个字符,数字英文双字节(包含中文)
+    srcFolder: /[^_]*([^x00-xff]|[0-9a-zA-Z]){1,12}/, //素材文件夹名称不包含下划线，3～12个字符,数字英文双字节(包含中文)
+};*/
 
 
 

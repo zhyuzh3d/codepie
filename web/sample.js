@@ -21,11 +21,79 @@ define(['jquery', 'jform', 'qiniu'], function ($, jform, qiniu) {
     pietop.append($('<div>公共接口的示例</div><br>'));
     $('#_pieTemp').remove();
 
+
+    /*绑定邮箱，需要注册验证码*/
+    var grpBindMail = function () {
+        var grp = $('<div id="grpBindMail" style="margin:16px"></div>').appendTo(bd);
+        grp.append($('<hr>'));
+        grp.append($('<h3>绑定邮箱到当前用户[../api/bindMail]</h3>'));
+
+        var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
+        fm.attr('action', '../api/bindMail');
+        $('<label>mail</label>').appendTo(fm);
+        var mailipt = $('<input name="mail">').val('286052520@qq.com').appendTo(fm);
+        var regCodeipt = $('<input name="regCode">').appendTo(fm);
+        var pwipt = $('<input name="pw">').val('zhyuzh').appendTo(fm);
+        var sendbtn = $('<button style="padding:8px 16px">点击绑定</button>').appendTo(grp);
+
+        $('<br><label>RES:</label><br>').appendTo(grp);
+        var resdiv = $('<div>...</div>').appendTo(grp);
+
+
+        sendbtn.click(function (e) {
+            fm.ajaxSubmit({
+                type: 'POST',
+                success: function (res) {
+                    console.log('bindMail', res);
+                    resdiv.html(JSON.stringify(res));
+                },
+            });
+        });
+
+        return grp;
+    }();
+
+
+
+    /*通过邮箱获得注册获取验证码*/
+    var grpSendRegCodeToMail = function () {
+        var grp = $('<div id="grpSendRegCodeToMail" style="margin:16px"></div>').appendTo(bd);
+        grp.append($('<hr>'));
+        grp.append($('<h3>获得邮箱注册验证码的接口[../api/sendRegCodeToMail]</h3>'));
+
+        var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
+        fm.attr('action', '../api/sendRegCodeToMail');
+        $('<label>mail</label>').appendTo(fm);
+        var mailipt = $('<input name="mail">').val('286052520@qq.com').appendTo(fm);
+        var resendchk = $('<input type="checkbox" name="resend">').attr('checked', true).appendTo(fm);
+        $('<span>重新发送</span>').appendTo(fm);
+        var sendbtn = $('<button style="padding:8px 16px">点击发送验证码</button>').appendTo(grp);
+
+        $('<br><label>RES:</label><br>').appendTo(grp);
+        var resdiv = $('<div>...</div>').appendTo(grp);
+
+
+        sendbtn.click(function (e) {
+            fm.ajaxSubmit({
+                type: 'POST',
+                success: function (res) {
+                    console.log('sendRegCodeToMail', res);
+                    resdiv.html(JSON.stringify(res));
+                },
+            });
+        });
+
+        return grp;
+    }();
+
+
+
+
     /*创建App（pie）的接口*/
     var grpCreatePie = function () {
         var grp = $('<div id="grpCreatePie" style="margin:16px"></div>').appendTo(bd);
         grp.append($('<hr>'));
-        grp.append($('<h3>创建pieApp的借口[../api/createPie]</h3>'));
+        grp.append($('<h3>创建pieApp的接口[../api/createPie]</h3>'));
 
         var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
         fm.attr('action', '../api/createPie');
