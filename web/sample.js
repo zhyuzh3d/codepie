@@ -22,6 +22,147 @@ define(['jquery', 'jform', 'qiniu'], function ($, jform, qiniu) {
     $('#_pieTemp').remove();
 
 
+
+
+
+
+
+
+
+
+
+    /*使用邮箱登陆*/
+    var grpLoginByMail = function () {
+        var grp = $('<div id="grpLoginByMail" style="margin:16px"></div>').appendTo(bd);
+        grp.append($('<hr>'));
+        grp.append($('<h3>使用邮箱登陆[../api/loginByMail]</h3>'));
+
+        var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
+        fm.attr('action', '../api/loginByMail');
+        $('<label>mail</label>').appendTo(fm);
+        var mailipt = $('<input name="mail">').val('286052520@qq.com').appendTo(fm);
+        $('<label>pw</label>').appendTo(fm);
+        var pw = $('<input name="pw">').val('zhyuzh').appendTo(fm);
+        var sendbtn = $('<button style="padding:8px 16px">点击登陆</button>').appendTo(grp);
+
+        $('<br><label>RES:</label><br>').appendTo(grp);
+        var resdiv = $('<div>...</div>').appendTo(grp);
+
+        sendbtn.click(function (e) {
+            fm.ajaxSubmit({
+                type: 'POST',
+                success: function (res) {
+                    console.log('loginByMail', res);
+                    resdiv.html(JSON.stringify(res));
+                },
+            });
+        });
+
+        return grp;
+    }();
+
+
+
+
+
+    /*向邮箱发送重置密码的接口*/
+    var grpSendResetPwToMail = function () {
+        var grp = $('<div id="grpSendResetPwToMail" style="margin:16px"></div>').appendTo(bd);
+        grp.append($('<hr>'));
+        grp.append($('<h3>向邮箱发送重置密码的接口[../api/sendResetPwToMail]</h3>'));
+
+        var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
+        fm.attr('action', '../api/sendResetPwToMail');
+        $('<label>mail</label>').appendTo(fm);
+        var mailipt = $('<input name="mail">').val('286052520@qq.com').appendTo(fm);
+        var sendbtn = $('<button style="padding:8px 16px">发送重置密码</button>').appendTo(grp);
+
+        $('<br><label>RES:</label><br>').appendTo(grp);
+        var resdiv = $('<div>...</div>').appendTo(grp);
+
+        sendbtn.click(function (e) {
+            fm.ajaxSubmit({
+                type: 'POST',
+                success: function (res) {
+                    console.log('sendResetPwToMail', res);
+                    resdiv.html(JSON.stringify(res));
+                },
+            });
+        });
+
+        return grp;
+    }();
+
+
+
+    /*修改邮箱密码的接口*/
+    var grpChangePw = function () {
+        var grp = $('<div id="grpChangePw" style="margin:16px"></div>').appendTo(bd);
+        grp.append($('<hr>'));
+        grp.append($('<h3>修改邮箱密码接口[../api/changePw]</h3>'));
+
+        var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
+        fm.attr('action', '../api/changePw');
+        $('<label>mail</label>').appendTo(fm);
+        var mailipt = $('<input name="mail">').val('286052520@qq.com').appendTo(fm);
+        $('<label>orgPw</label>').appendTo(fm);
+        var orgpw = $('<input name="orgPw">').val('zhyuzh').appendTo(fm);
+        $('<label>newPw</label>').appendTo(fm);
+        var newpw = $('<input name="newPw">').val('zhyuzh').appendTo(fm);
+        var isrst = $('<input type="checkbox" name="isRest">').attr('checked', true).appendTo(fm);
+        $('<span>重置密码</span>').appendTo(fm);
+        var sendbtn = $('<button style="padding:8px 16px">点击修改</button>').appendTo(grp);
+
+        $('<br><label>RES:</label><br>').appendTo(grp);
+        var resdiv = $('<div>...</div>').appendTo(grp);
+
+        sendbtn.click(function (e) {
+            fm.ajaxSubmit({
+                type: 'POST',
+                success: function (res) {
+                    console.log('bindMail', res);
+                    resdiv.html(JSON.stringify(res));
+                },
+            });
+        });
+
+        return grp;
+    }();
+
+
+
+
+    /*通过邮箱获得注册获取验证码*/
+    var grpSendRegCodeToMail = function () {
+        var grp = $('<div id="grpSendRegCodeToMail" style="margin:16px"></div>').appendTo(bd);
+        grp.append($('<hr>'));
+        grp.append($('<h3>获得邮箱注册验证码的接口[../api/sendRegCodeToMail]</h3>'));
+
+        var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
+        fm.attr('action', '../api/sendRegCodeToMail');
+        $('<label>mail</label>').appendTo(fm);
+        var mailipt = $('<input name="mail">').val('286052520@qq.com').appendTo(fm);
+        var resendchk = $('<input type="checkbox" name="resend">').attr('checked', true).appendTo(fm);
+        $('<span>重新发送</span>').appendTo(fm);
+        var sendbtn = $('<button style="padding:8px 16px">点击发送验证码</button>').appendTo(grp);
+
+        $('<br><label>RES:</label><br>').appendTo(grp);
+        var resdiv = $('<div>...</div>').appendTo(grp);
+
+        sendbtn.click(function (e) {
+            fm.ajaxSubmit({
+                type: 'POST',
+                success: function (res) {
+                    console.log('sendRegCodeToMail', res);
+                    resdiv.html(JSON.stringify(res));
+                },
+            });
+        });
+
+        return grp;
+    }();
+
+
     /*绑定邮箱，需要注册验证码*/
     var grpBindMail = function () {
         var grp = $('<div id="grpBindMail" style="margin:16px"></div>').appendTo(bd);
@@ -52,42 +193,6 @@ define(['jquery', 'jform', 'qiniu'], function ($, jform, qiniu) {
 
         return grp;
     }();
-
-
-
-    /*通过邮箱获得注册获取验证码*/
-    var grpSendRegCodeToMail = function () {
-        var grp = $('<div id="grpSendRegCodeToMail" style="margin:16px"></div>').appendTo(bd);
-        grp.append($('<hr>'));
-        grp.append($('<h3>获得邮箱注册验证码的接口[../api/sendRegCodeToMail]</h3>'));
-
-        var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
-        fm.attr('action', '../api/sendRegCodeToMail');
-        $('<label>mail</label>').appendTo(fm);
-        var mailipt = $('<input name="mail">').val('286052520@qq.com').appendTo(fm);
-        var resendchk = $('<input type="checkbox" name="resend">').attr('checked', true).appendTo(fm);
-        $('<span>重新发送</span>').appendTo(fm);
-        var sendbtn = $('<button style="padding:8px 16px">点击发送验证码</button>').appendTo(grp);
-
-        $('<br><label>RES:</label><br>').appendTo(grp);
-        var resdiv = $('<div>...</div>').appendTo(grp);
-
-
-        sendbtn.click(function (e) {
-            fm.ajaxSubmit({
-                type: 'POST',
-                success: function (res) {
-                    console.log('sendRegCodeToMail', res);
-                    resdiv.html(JSON.stringify(res));
-                },
-            });
-        });
-
-        return grp;
-    }();
-
-
-
 
     /*创建App（pie）的接口*/
     var grpCreatePie = function () {
