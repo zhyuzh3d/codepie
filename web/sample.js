@@ -5,20 +5,41 @@ require.config({
         jquery: '//cdn.bootcss.com/jquery/2.2.1/jquery.min',
         jform: '//cdn.bootcss.com/jquery.form/3.51/jquery.form.min',
         qiniu: '//' + window.location.host + '/web/qiniu',
+        md5: '//cdn.bootcss.com/spark-md5/2.0.2/spark-md5.min',
     },
 });
 
 
 
 /*实际函数运行*/
-define(['jquery', 'jform', 'qiniu'], function ($, jform, qiniu) {
+define(['jquery', 'jform', 'qiniu', 'md5'], function ($, jform, qiniu, md5) {
     var host = window.location.host;
 
     /*标题*/
-    var bd = $('#_pieLocator');
-    var pietop = $('<div style="margin:16px"></div>').appendTo(bd);
-    pietop.append($('<a href="' + $('#_pieLocator').attr('pieUrl') + '"><h1 style="margin:0">PIE:Sample</h1></a>'));
-    pietop.append($('<div>公共接口的示例</div><br>'));
+    var lctr = $('#_pieLocator');
+    $('<style>a{text-decoration : none} a:hover{text-decoration:none} </style>').appendTo(lctr);
+
+
+    /*左右分开*/
+    var ls = $('<div id="left" style="width:25%;display:inline-block;vertical-align:top"></div>').appendTo(lctr);
+    var bd = $('<div id="right" style="width:75%;display:inline-block;vertical-align:top"></div>').appendTo(lctr);
+    bd.css({
+        'margin-left': '25%',
+        'position': 'fixed',
+        'overflow': 'scroll',
+        'height': '100%',
+        'padding-left': '18px',
+    });
+    ls.css({
+        'position': 'fixed',
+        'overflow': 'scroll',
+        'height': '100%',
+        'padding-left': '12px',
+    });
+    var pietop = $('<div style="margin-top:8px"></div>').appendTo(ls);
+    pietop.append($('<h1 style="margin:0">Sample</h1>'));
+    //    pietop.append($('<a href="' + $('#_pieLocator').attr('pieUrl') + '"><h1 style="margin:0">Sample</h1></a>'));
+    pietop.append($('<div>公共接口示例</div><br>'));
     $('#_pieTemp').remove();
 
 
@@ -26,6 +47,70 @@ define(['jquery', 'jform', 'qiniu'], function ($, jform, qiniu) {
 
 
 
+
+
+    var grp = $('<div id="---USER" style="margin:16px"></div>').appendTo(bd);
+
+
+    /*修改个人资料*/
+    var grpSetProfile = function () {
+        var grp = $('<div id="grpSetProfile" style="margin:16px"></div>').appendTo(bd);
+        grp.append($('<hr>'));
+        grp.append($('<h3>修改个人资料[../api/setProfile]</h3>'));
+
+        var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
+        fm.attr('action', '../api/setProfile');
+        $('<label>nick</label>').appendTo(fm);
+        var nickipt = $('<input name="nick">').val('zhyuzh').appendTo(fm);
+        $('<label>sex</label>').appendTo(fm);
+        var sexipt = $('<input name="sex">').val(1).appendTo(fm);
+        var sendbtn = $('<button style="padding:8px 16px">点击保存</button>').appendTo(grp);
+
+        $('<br><label>RES:</label><br>').appendTo(grp);
+        var resdiv = $('<div>...</div>').appendTo(grp);
+
+        sendbtn.click(function (e) {
+            fm.ajaxSubmit({
+                type: 'POST',
+                success: function (res) {
+                    console.log('setProfile', res);
+                    resdiv.html(JSON.stringify(res));
+                },
+            });
+        });
+
+        return grp;
+    }();
+
+
+
+
+    /*获取用户自己的信息*/
+    var grpGetProfile = function () {
+        var grp = $('<div id="grpGetProfile" style="margin:16px"></div>').appendTo(bd);
+        grp.append($('<hr>'));
+        grp.append($('<h3>使获得用户自身信息[../api/getProfile]</h3>'));
+
+        var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
+        fm.attr('action', '../api/getProfile');
+        var sendbtn = $('<button style="padding:8px 16px">点击刷新</button>').appendTo(grp);
+
+        $('<br><label>RES:</label><br>').appendTo(grp);
+        var resdiv = $('<div>...</div>').appendTo(grp);
+
+        sendbtn.click(function (e) {
+            fm.ajaxSubmit({
+                type: 'POST',
+                success: function (res) {
+                    console.log('getSelfInfo', res);
+                    resdiv.html(JSON.stringify(res));
+                },
+            });
+        });
+        sendbtn.click();
+
+        return grp;
+    }();
 
 
 
@@ -49,6 +134,7 @@ define(['jquery', 'jform', 'qiniu'], function ($, jform, qiniu) {
         var resdiv = $('<div>...</div>').appendTo(grp);
 
         sendbtn.click(function (e) {
+            pw.val(md5.hash(pw.val()));
             fm.ajaxSubmit({
                 type: 'POST',
                 success: function (res) {
@@ -109,7 +195,7 @@ define(['jquery', 'jform', 'qiniu'], function ($, jform, qiniu) {
         var orgpw = $('<input name="orgPw">').val('zhyuzh').appendTo(fm);
         $('<label>newPw</label>').appendTo(fm);
         var newpw = $('<input name="newPw">').val('zhyuzh').appendTo(fm);
-        var isrst = $('<input type="checkbox" name="isRest">').attr('checked', true).appendTo(fm);
+        var isrst = $('<input type="checkbox" name="isRest">').attr('checked', false).appendTo(fm);
         $('<span>重置密码</span>').appendTo(fm);
         var sendbtn = $('<button style="padding:8px 16px">点击修改</button>').appendTo(grp);
 
@@ -117,6 +203,11 @@ define(['jquery', 'jform', 'qiniu'], function ($, jform, qiniu) {
         var resdiv = $('<div>...</div>').appendTo(grp);
 
         sendbtn.click(function (e) {
+            if (!isrst.val()) {
+                //为密码加密处理,如果是重置那么不加密
+                orgpw.val(md5.hash(ogrpw.val()));
+            };
+            newpw.val(md5.hash(newpw.val()));
             fm.ajaxSubmit({
                 type: 'POST',
                 success: function (res) {
@@ -173,7 +264,9 @@ define(['jquery', 'jform', 'qiniu'], function ($, jform, qiniu) {
         fm.attr('action', '../api/bindMail');
         $('<label>mail</label>').appendTo(fm);
         var mailipt = $('<input name="mail">').val('286052520@qq.com').appendTo(fm);
+        $('<label>regCode</label>').appendTo(fm);
         var regCodeipt = $('<input name="regCode">').appendTo(fm);
+        $('<label>pw</label>').appendTo(fm);
         var pwipt = $('<input name="pw">').val('zhyuzh').appendTo(fm);
         var sendbtn = $('<button style="padding:8px 16px">点击绑定</button>').appendTo(grp);
 
@@ -193,6 +286,10 @@ define(['jquery', 'jform', 'qiniu'], function ($, jform, qiniu) {
 
         return grp;
     }();
+
+
+    var grp = $('<div id="---PIE" style="margin:16px"></div>').appendTo(bd);
+
 
     /*创建App（pie）的接口*/
     var grpCreatePie = function () {
@@ -229,7 +326,7 @@ define(['jquery', 'jform', 'qiniu'], function ($, jform, qiniu) {
     }();
 
 
-
+    var grp = $('<div id="---FILE" style="margin:16px"></div>').appendTo(bd);
 
     /*获取文件列表*/
     var grpGetFileList = function () {
@@ -387,8 +484,25 @@ define(['jquery', 'jform', 'qiniu'], function ($, jform, qiniu) {
         return grp;
     }();
 
-    //底部空间
-    bd.append($('<div style="margin:16px 0 120px 16px"><hr><br>Create by jscodepie</div>'))
 
-    //end
+
+
+    //生成左侧列表
+    bd.children().each(function (i, obj) {
+        var jo = $(obj);
+        var grp = jo.attr('id');
+        var div = $('<div style="line-height:20px"></div>').appendTo(ls);
+        console.log('grp', grp, grp.substr(0,3) == '---');
+        if (grp.substr(0,3) == '---') {
+            div.css('background-color', '#EEE');
+            div.css('margin-top', '8px');
+        };
+        var idx = $('<a style="white-space:pre" href="#' + grp + '">' + grp.substr(3) + '</a>');
+        idx.appendTo(div);
+    });
+
+
+    //底部空间
+    bd.append($('<div style="margin:16px 0 120px 12px"><hr><br>Create by jscodepie</div>'))
+        //end
 });

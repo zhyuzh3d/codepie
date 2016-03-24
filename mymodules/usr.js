@@ -182,7 +182,6 @@ _rotr.apis.changePw = function () {
         var opw = ctx.query.orgPw || ctx.request.body.orgPw;
         if (!opw || !_cfg.regx.pw.test(opw)) throw Error('Orignal password format err.');
         var npw = ctx.query.newPw || ctx.request.body.newPw;
-        console.log('>>>changepw', npw, enewpw);
         if (!npw || !_cfg.regx.pw.test(npw)) throw Error('New password format err.');
 
         //获取邮箱对应的uid
@@ -292,12 +291,7 @@ _rotr.apis.loginByMail = function () {
 
         //读取全部信息并筛选
         var usr = yield _ctnu([_rds.cli, 'hgetall'], usrkey);
-        var res = {
-            id: usr.id,
-            nick: usr.nick,
-            sex: usr.sex,
-            mail: usr.mail,
-        };
+        var res = filterUsrProfile(usr);
 
         //把ukey写入cookie,改变uid
         ctx.cookies.set('ukey', usr.ukey);
@@ -314,8 +308,68 @@ _rotr.apis.loginByMail = function () {
 req:{}
 res:{id:23,name:'..',sex:'...',...}
 */
+_rotr.apis.getProfile = function () {
+    var ctx = this;
+    var co = $co(function* () {
+        var uid = ctx.xdat.uid;
+        var usrkey = 'usr-' + uid;
+
+        //读取全部信息并筛选
+        var usr = yield _ctnu([_rds.cli, 'hgetall'], usrkey);
+        var res = filterUsrProfile(usr);
+
+        //把ukey写入cookie,改变uid
+        ctx.body = __newMsg(1, 'OK', res);
+
+        ctx.xdat.getProfile = res;
+        return ctx;
+    });
+    return co;
+};
+
+/*过滤用户信息方法
+把hgetall得到的数据过滤剩下可以返回前端的数据
+白名单制*/
+function filterUsrProfile(usr, attrarr) {
+    var res = {};
+    if (!attrarr) attrarr = ['id', 'nick', 'sex', 'mail'];
+    attrarr.forEach(function (attr, i) {
+        res[attr] = usr[attr];
+    });
+    return res;
+};
 
 
+/*修改个人档案接口
+根据req的uid修改，只能修改自己的
+req:{nick:'...',sex:0};
+res:{}
+*/
+_rotr.apis.setProfile = function () {
+    var ctx = this;
+    var co = $co(function* () {
+        var uid = ctx.xdat.uid;
+        var usrkey = 'usr-' + uid;
+
+        var nick = ctx.query.nick || ctx.request.body.nick;
+        if (!nick || !_cfg.regx.nick.test(nick)) throw Error('Nick format err.');
+        var sex = ctx.query.sex || ctx.request.body.sex;
+        if (!sex || !_cfg.regx.sex.test(sex)) throw Error('Sex format err.');
+
+        //写入数据库
+        var mu = _rds.cli.multi();
+        mu.hset(usrkey, 'nick', nick);
+        mu.hset(usrkey, 'sex', sex);
+        var res = yield _ctnu([mu, 'exec']);
+
+        //把ukey写入cookie,改变uid
+        ctx.body = __newMsg(1, 'OK');
+
+        ctx.xdat.setProfile = res;
+        return ctx;
+    });
+    return co;
+};
 
 
 //导出模块
