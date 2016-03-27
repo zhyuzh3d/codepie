@@ -6,7 +6,7 @@
 var _usr = {};
 
 //基本变量
-var tmpNameArr = JSON.parse($fs.readFileSync('mymodules/usr/tmpusr.json', 'utf-8')); //临时用户名
+var tmpNameArr = JSON.parse($fs.readFileSync('mymodules/src/tmpusr.json', 'utf-8')); //临时用户名
 if (!tmpNameArr) throw Error('_usr.js get tmpusrarr failed!');
 
 
@@ -20,10 +20,14 @@ okfn(usr)中usr对象包含id等信息
 power:everyone
 */
 
-function createUsrCo() {
+function createUsrCo(uid) {
     var co = $co(function* () {
         var usr = tmpNameArr[Math.floor(Math.random() * tmpNameArr.length)]; //随机临时用户
-        usr.id = yield _ctnu([_rds.cli, 'zincrby'], '_cls', 1, 'usr');
+        if (uid) {
+            usr.id = uid;
+        } else {
+            usr.id = yield _ctnu([_rds.cli, 'zincrby'], '_cls', 1, 'usr');
+        };
         usr.ukey = __uuid();
 
         var keynm = 'usr-' + usr.id;
@@ -80,7 +84,7 @@ function getUidByHttpCC() {
 
 
 /*注册验证码的邮件文字内容*/
-var mailRegCodeHtml = $fs.readFileSync('mymodules/usr/regMail.html', 'utf-8');
+var mailRegCodeHtml = $fs.readFileSync('mymodules/src/regMail.html', 'utf-8');
 
 /*接口：用邮箱绑定当前账号uid
 系统自动向这个邮箱发一个邮件，带有一个六位数字，输入这个数字才能完成验证，然后才能输入密码注册成功
@@ -222,7 +226,7 @@ _rotr.apis.changePw = function () {
 
 
 /*重置密码的邮件文字内容*/
-var mailResetPwHtml = $fs.readFileSync('mymodules/usr/resetPwMail.html', 'utf-8');
+var mailResetPwHtml = $fs.readFileSync('mymodules/src/resetPwMail.html', 'utf-8');
 
 /*向邮箱发送重置密码，未登录也可以使用
 通过邮箱查找uid,找到usr键，

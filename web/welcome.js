@@ -17,7 +17,7 @@ require(['jquery'], function ($) {
         var grp = $('<div style="text-align:center;margin-top:15%;line-height:1.5em"></div>');
         grp.append($('<div style="font-weight:bold;font-size:18px;line-height:36px">代码派 !</div>'));
         grp.append($('<div style="line-height:16px">Welcome to js codepie !</div>'));
-        grp.append($('<div style="font-size:12px">-pie:start-</div>'));
+        grp.append($('<div style="font-size:12px">-pie:welcome-</div>'));
         grp.append($('<div style="font-size:12px">网站建设中，即将开启...</div>'));
         return grp;
     }();

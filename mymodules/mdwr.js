@@ -5,7 +5,7 @@
 var _mdwr = function* (next) {
     //调整默认路径
     if (this.path == '/' || this.path == '/index' || this.path == '/index.html') {
-        this.path = '/pie/start';
+        this.path = '/pie/welcome';
     };
     __infohdlr(this.method + ':' + this.path);
 

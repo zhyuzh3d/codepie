@@ -16,7 +16,7 @@ define(['jquery', 'jform', 'qiniu', 'md5'], function ($, jform, qiniu, md5) {
     var host = window.location.host;
 
     /*标题*/
-    var lctr = $('#_pieLocator');
+    var lctr = $('#pieBox');
     $('<style>a{text-decoration : none} a:hover{text-decoration:none} </style>').appendTo(lctr);
 
 

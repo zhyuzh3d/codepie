@@ -14,6 +14,9 @@ _rotr.get('pie', '/pie/:puid/:appname', pageApp);
 _rotr.get('app', '/app/:appname', pageApp);
 _rotr.get('app', '/app/:puid/:appname', pageApp);
 
+
+var pieAppHtml = $fs.readFileSync('mymodules/src/pieApp.html', 'utf-8');
+
 /*生成app页面;如果有uid那么使用，如果没有那么就设定为1*/
 function* pageApp(next) {
     var puid = this.xdat.pieUid = this.params.puid;
@@ -41,12 +44,17 @@ function* pageApp(next) {
     var pieUrl = yield _ctnu([_rds.cli, 'hget'], piekeynm, 'url');
     this.xdat.pieUrl = pieUrl;
     var pienmshort = pienm.replace(/^\d\//, '');
-    console.log('>>pieshort', pienmshort);
 
     //发送嵌有app.js路径的html模版;<body>部分应该被app替换;默认自带jquery
-    this.body = '<! DOCTYPE HTML><html><head><title>' + pienmshort + '</title><script data-main="' + pieUrl + '" src="//cdn.bootcss.com/require.js/2.1.22/require.min.js"></script></head><body><div id="_pieLocator" pieUrl="' + pieUrl + '"><div id="_pieTemp" style="text-align:center;margin-top:15%;line-height:1.5em">Welcome to jscodepie.com!<br>App[' + pienm + '] is loading... <br> [' + pieUrl + '] </div></div></body></html>';
+    var piehtml = pieAppHtml;
+    piehtml = piehtml.replace(/{{pieNameShort}}/g, pienmshort);
+    piehtml = piehtml.replace(/{{pieUrl}}/g, pieUrl);
+    piehtml = piehtml.replace(/{{pieName}}/g, pienm);
+
+    this.body = piehtml;
     yield next;
 };
+
 
 
 
@@ -103,12 +111,35 @@ _rotr.get('/favicon.ico', function* (next) {
     this.body = favicon;
 });
 
+
+//访问首页welcome的请求，暂不缓存
+_rotr.get('/web/welcome.js', piewelcome);
+_rotr.get('/pie/web/welcome.js', piewelcome);
+
+function* piewelcome(next) {
+    var dat = $fs.readFileSync('./web/welcome.js');
+    //读取图片文件返回
+    this.body = dat;
+}
+
 //访问首页start的请求，暂不缓存
 _rotr.get('/web/start.js', piestart);
 _rotr.get('/pie/web/start.js', piestart);
 
 function* piestart(next) {
     var dat = $fs.readFileSync('./web/start.js');
+    //读取图片文件返回
+    this.body = dat;
+}
+
+
+
+//访问首页editor的请求，暂不缓存
+_rotr.get('/web/editor.js', pieeditor);
+_rotr.get('/pie/web/editor.js', pieeditor);
+
+function* pieeditor(next) {
+    var dat = $fs.readFileSync('./web/editor.js');
     //读取图片文件返回
     this.body = dat;
 }
@@ -122,6 +153,8 @@ function* piesample(next) {
     //读取图片文件返回
     this.body = dat;
 }
+
+
 
 //访问首页piejs的请求，缓存
 _rotr.get('/web/wpie.js', function* (next) {

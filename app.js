@@ -34,6 +34,7 @@ global._usr = require('./mymodules/usr.js');
 global._pie = require('./mymodules/pie.js');
 global._mdwr = require('./mymodules/mdwr.js');
 global._qn = require('./mymodules/qn.js');
+global._init = require('./mymodules/init.js');
 
 
 //服务器对象
