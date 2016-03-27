@@ -285,6 +285,66 @@ define(['jquery', 'jform', 'qiniu', 'md5'], function ($, jform, qiniu, md5) {
 
     var grp = $('<div id="---PIE" style="margin:16px"></div>').appendTo(bd);
 
+    /*获取我的pieapp列表的接口*/
+    var grpGetPieList = function () {
+        var grp = $('<div id="grpGetPieList" style="margin:16px"></div>').appendTo(bd);
+        grp.append($('<hr>'));
+        grp.append($('<h3>创建pieApp的接口[../api/getPieList]<br>设置pie的state接口[.../api/setPieStateByName]</h3>'));
+
+        var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
+        fm.attr('action', '../api/getPieList');
+        var sendbtn = $('<button style="padding:8px 16px">刷新列表</button>').appendTo(grp);
+
+        $('<br><label>RES:</label><br>').appendTo(grp);
+        var resul = $('<ul"></ul>').appendTo(grp);
+        var resdiv = $('<div>...</div>').appendTo(grp);
+
+        function addpie(name,state) {
+            var li = $('<li></li>');
+            var pfm = $('<form method="post" enctype="text/plain"></form>').appendTo(li);
+            pfm.attr('action', '../api/setPieStateByName');
+            $('<label>name</label>').appendTo(pfm);
+            var nameipt = $('<input name="name">').val(name).appendTo(pfm);
+            $('<label>state</label>').appendTo(pfm);
+            var stateipt = $('<input name="state" style="width:50px">').val(state).appendTo(pfm);
+            var delbtn = $('<span style="color:#F00;cursor:pointer">设置</span>').appendTo(pfm);
+            li.appendTo(resul);
+
+            delbtn.click(function (e) {
+                e.preventDefault();
+                pfm.ajaxSubmit({
+                    type: 'POST',
+                    success: function (res) {
+                        console.log('remove pie', res);
+                        resdiv.html(JSON.stringify(res));
+                    },
+                });
+            });
+        };
+
+
+        sendbtn.click(function (e) {
+            resul.empty();
+            fm.ajaxSubmit({
+                type: 'POST',
+                success: function (res) {
+                    console.log('createpie', res);
+                    resdiv.html(JSON.stringify(res));
+                    if (res.code == 1) {
+                        for (var i in res.data.pieArr) {
+                            var pie = res.data.pieArr[i];
+                            addpie(pie.name,pie.state);
+                        };
+                    };
+                },
+            });
+        });
+        sendbtn.click();
+
+        return grp;
+    }();
+
+
 
     /*创建App（pie）的接口*/
     var grpCreatePie = function () {

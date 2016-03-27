@@ -33,7 +33,7 @@ _pie.createPieCo = createPieCo;
 
 function createPieCo(uid, name) {
     var co = $co(function* () {
-        //检查用户是否已经存在同名的pieapp,先获取pieSetKey，然后检查是否存在
+        //检查用户是否已经存在同名的pieapp,先获取pieSetKey(如果没有自动创建)，然后检查是否存在
         var usrkey = 'usr-' + uid;
         var setkey = yield _ctnu([_rds.cli, 'hget'], usrkey, 'pieSetKey');
         if (setkey) {
@@ -41,6 +41,11 @@ function createPieCo(uid, name) {
             if (exist) {
                 throw Error('The pie name [' + name + '] already  exists.')
             };
+        } else {
+            //如果usr还没有pieSetKey那么自动创建并加入usr
+            var setid = yield _ctnu([_rds.cli, 'zincrby'], '_cls', 1, 'set');
+            setkey = 'set-' + setid;
+            yield _ctnu([_rds.cli, 'hset'], usrkey, 'pieSetKey', setkey);
         };
 
         //获取自增pieid
@@ -54,6 +59,8 @@ function createPieCo(uid, name) {
         var fileobj = yield _qn.uploadDataCo(fstr, filekey);
         var furl = _qn.cfg.BucketDomain + fileobj.key;
 
+
+
         //创建pie-id键hash
         var piekey = 'pie-' + pieid;
         mu.hset(piekey, 'id', pieid);
@@ -62,11 +69,8 @@ function createPieCo(uid, name) {
         mu.hset(piekey, 'uid', uid);
         mu.hset(piekey, 'url', furl);
 
-        //创建set-100(set)键，存放用户的pie列表,usr-100.pieSetKey
-        var setid = yield _ctnu([_rds.cli, 'zincrby'], '_cls', 1, 'set');
-        var piesetkey = 'set-' + setid;
-        mu.sadd(piesetkey, name);
-        mu.hset(usrkey, 'pieSetKey', piesetkey);
+        //存入pieset列表
+        mu.sadd(setkey, name);
 
         //建立映射键_map:pie.name:pie.id
         mu.zadd('_map:pie.name:pie.id', pieid, uid + '/' + name);
@@ -91,37 +95,110 @@ function createPieCo(uid, name) {
 
 
 
-/*获取我的pie列表*/
-
-
-
-/*删除一个pie*/
-
-
-
-
-
-
-
-
-
-_pie.getPieInfoCo = getPieInfoCo;
-/*获取一个pie基本数据，如id，路径，作者等
-如果出错返回空对象
-power:everyone
+/*获取我的pie列表
+req:{}
+res:{count:12,pies:[{id:13,name:'..',url:'...'}]}
 */
-function getPieInfoCo(piename) {
-    varco = $co(function* () {
-        var info = yield _ctnu([_rds.cli, 'hgetall'], piename);
-        return info;
-    }).then(null, function (err) {
-        __errhdlr(err);
-        return {};
+_rotr.apis.getPieList = function () {
+    var ctx = this;
+    var co = $co(function* () {
+        var uid = ctx.xdat.uid;
+        var res = yield getPieListCo(uid);
+        ctx.body = __newMsg(1, 'OK', res);
+        ctx.xdat.getPieList = res;
+        return ctx;
     });
-    return res;
+    return co;
 };
 
 
+/*获取某用户的pie列表*/
+_pie.getPieListCo = getPieListCo;
+
+function getPieListCo(uid) {
+    var co = $co(function* () {
+        //拿到set列表
+        var usrkey = 'usr-' + uid;
+        var setkey = yield _ctnu([_rds.cli, 'hget'], usrkey, 'pieSetKey');
+        if (!setkey) throw Error('You have not create one pie.');
+        var pies = yield _ctnu([_rds.cli, 'smembers'], setkey);
+        if (!pies || pies.length < 1) throw Error('Your pie box is empty.');
+
+        //逐个读取pid
+        var mu = _rds.cli.multi();
+        for (var i in pies) {
+            var pkey = uid + '/' + pies[i];
+            mu.zscore('_map:pie.name:pie.id', pkey);
+        }
+        var pidarr = yield _ctnu([mu, 'exec']);
+
+        //逐个读取pie信息
+        for (var i in pidarr) {
+            var pkey = 'pie-' + pidarr[i];
+            mu.hgetall(pkey);
+        }
+        var piearr = yield _ctnu([mu, 'exec']);
+
+        //组成最终返回数据
+        var res = {
+            count: piearr.length,
+            pieArr: piearr,
+        };
+
+        return res;
+    });
+    return co;
+};
+
+
+/*设置pie的state，可以用来作为删除或恢复使用
+只能设置自己的pie
+req:{name:'...',state}
+res:{}
+*/
+_rotr.apis.setPieStateByName = function () {
+    var ctx = this;
+    var co = $co(function* () {
+        var uid = ctx.xdat.uid;
+
+        var name = ctx.query.name || ctx.request.body.name;
+        if (!name || !_cfg.regx.pieName.test(name)) throw Error('Pie name format error.');
+
+        var state = ctx.query.state || ctx.request.body.state;
+        if (!state || !/\d+/.test(state)) throw Error('State format error.');
+
+        var res = yield setPieStateByNameCo(uid, name, state);
+        ctx.body = __newMsg(1, 'OK');
+        return ctx;
+    });
+    return co;
+};
+
+
+/*设置pie的state状态为移除
+因为uid已经限制了权限，所以可以直接操作
+*/
+_pie.setPieStateByNameCo = setPieStateByNameCo;
+
+function setPieStateByNameCo(uid, pname,state) {
+    var co = $co(function* () {
+        var usrkey = 'usr-' + uid;
+        var piename = uid + '/' + pname;
+
+        //找到pid
+        var pid = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.name:pie.id', piename);
+        if (!pid) throw Error('Can not find the pie id [' + pname + ']');
+
+        //设置state,先检查是否存在
+        var piekey = 'pie-' + pid;
+        var isExsist = yield _ctnu([_rds.cli, 'exists'], piekey);
+        if (!isExsist) throw Error('The pie [' + pname + '] does not exists.')
+        var res = yield _ctnu([_rds.cli, 'hset'], piekey, 'state', state);
+
+        return res;
+    });
+    return co;
+};
 
 
 
