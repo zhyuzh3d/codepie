@@ -185,6 +185,60 @@ function uploadDataCo(dat, filekey, extra) {
 
 
 
+/*http接口POST：删除一个文件
+验证key是否和当前uid匹配
+req:{key:'...'};
+res:{}
+*/
+_rotr.apis.deleteFile = function () {
+    var ctx = this;
+    var co = $co(function* () {
+        var uid = ctx.xdat.uid;
+
+        var fkey = ctx.request.body.key || ctx.query.key;
+        if (fkey.indexOf(uid + '/') != 0) throw Error('You can delete only your own file.')
+
+        var res = yield _qn.deleteFileCo(fkey);
+        if (!res) throw Error('Delete file faild.');
+
+        ctx.body = __newMsg(1, 'ok');
+
+        ctx.xdat.deleteFile = res;
+        return ctx;
+    });
+    return co;
+};
+
+
+/*单独函数deleteFileCo*/
+_qn.deleteFileCo = deleteFileCo;
+
+function deleteFileCo(fkey) {
+    var co = $co(function* () {
+        var uri = $qiniu.util.urlsafeBase64Encode(cfg.BucketName + ':' + fkey);
+        var optpath = '/delete/' + uri;
+
+        //根据uid授权路径的token
+        var options = {
+            hostname: 'rs.qiniu.com',
+            port: 80,
+            path: optpath,
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': '',
+            },
+        };
+
+        //计算token
+        options.headers.Authorization = $qiniu.util.generateAccessToken(options.path, null);
+        var res = yield _fns.httpReqPrms(options);
+
+        return res;
+    });
+    return co;
+};
+
 
 
 

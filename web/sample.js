@@ -287,9 +287,11 @@ define(['jquery', 'jform', 'qiniu', 'md5'], function ($, jform, qiniu, md5) {
 
     /*获取我的pieapp列表的接口*/
     var grpGetPieList = function () {
-        var grp = $('<div id="grpGetPieList" style="margin:16px"></div>').appendTo(bd);
+        var grp1 = $('<div id="grpGetPieList" style="margin:16px"></div>').appendTo(bd);
+        grp1.append($('<h3>创建pieApp的接口[../api/getPieList]</h3>'));
+        var grp = $('<div id="grpSetPieStateByName" style="margin:16px"></div>').appendTo(bd);
         grp.append($('<hr>'));
-        grp.append($('<h3>创建pieApp的接口[../api/getPieList]<br>设置pie的state接口[.../api/setPieStateByName]</h3>'));
+        grp.append($('<h3>设置pie的state接口[.../api/setPieStateByName]</h3>'));
 
         var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
         fm.attr('action', '../api/getPieList');
@@ -299,7 +301,7 @@ define(['jquery', 'jform', 'qiniu', 'md5'], function ($, jform, qiniu, md5) {
         var resul = $('<ul"></ul>').appendTo(grp);
         var resdiv = $('<div>...</div>').appendTo(grp);
 
-        function addpie(name,state) {
+        function addpie(name, state) {
             var li = $('<li></li>');
             var pfm = $('<form method="post" enctype="text/plain"></form>').appendTo(li);
             pfm.attr('action', '../api/setPieStateByName');
@@ -333,7 +335,7 @@ define(['jquery', 'jform', 'qiniu', 'md5'], function ($, jform, qiniu, md5) {
                     if (res.code == 1) {
                         for (var i in res.data.pieArr) {
                             var pie = res.data.pieArr[i];
-                            addpie(pie.name,pie.state);
+                            addpie(pie.name, pie.state);
                         };
                     };
                 },
@@ -388,6 +390,8 @@ define(['jquery', 'jform', 'qiniu', 'md5'], function ($, jform, qiniu, md5) {
         var grp = $('<div id="grpGetFileList" style="margin:16px"></div>').appendTo(bd);
         grp.append($('<hr>'));
         grp.append($('<h3>获取文件列表的接口[../api/getFileList]</h3>'));
+        var grp1 = $('<div id="grpDeleteFile" style="margin:16px"></div>').appendTo(bd);
+        grp.append($('<h3>删除文件接口[../api/deleteFile]</h3>'));
 
         var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
         fm.attr('action', '../api/getFileList');
@@ -403,6 +407,29 @@ define(['jquery', 'jform', 'qiniu', 'md5'], function ($, jform, qiniu, md5) {
         var resul = $('<ul></ul>').appendTo(grp);
         var resdiv = $('<div>...</div>').appendTo(grp);
 
+
+        function addFile(jo,key, state) {
+            var li = $('<span></span>');
+            var pfm = $('<form method="post" enctype="text/plain"></form>').appendTo(li);
+            pfm.attr('action', '../api/deleteFile');
+            $('<label>key</label>').appendTo(pfm);
+            var keyipt = $('<input name="key">').val(key).appendTo(pfm);
+            var delbtn = $('<span style="color:#F00;cursor:pointer">删除</span>').appendTo(pfm);
+            li.appendTo(jo);
+
+            delbtn.click(function (e) {
+                e.preventDefault();
+                pfm.ajaxSubmit({
+                    type: 'POST',
+                    success: function (res) {
+                        console.log('delete file', res);
+                        resdiv.html(JSON.stringify(res));
+                    },
+                });
+            });
+        };
+
+
         sendbtn.click(function (e) {
             fm.ajaxSubmit({
                 type: 'POST',
@@ -415,6 +442,7 @@ define(['jquery', 'jform', 'qiniu', 'md5'], function ($, jform, qiniu, md5) {
                         var li = $('<li></li>').appendTo(resul);
                         var furl = resobj.domain + one.key;
                         li.html('<a target="_blank" href="' + furl + '">' + furl + '</a>');
+                        addFile(li,one.key);
                     });
                 },
             });
