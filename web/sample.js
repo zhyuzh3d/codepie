@@ -38,13 +38,8 @@ define(['jquery', 'jform', 'qiniu', 'md5'], function ($, jform, qiniu, md5) {
     });
     var pietop = $('<div style="margin-top:8px"></div>').appendTo(ls);
     pietop.append($('<h1 style="margin:0">Sample</h1>'));
-    //    pietop.append($('<a href="' + $('#_pieLocator').attr('pieUrl') + '"><h1 style="margin:0">Sample</h1></a>'));
     pietop.append($('<div>公共接口示例</div><br>'));
     $('#_pieTemp').remove();
-
-
-
-
 
 
 
@@ -61,7 +56,7 @@ define(['jquery', 'jform', 'qiniu', 'md5'], function ($, jform, qiniu, md5) {
         var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
         fm.attr('action', '../api/setProfile');
         $('<label>nick</label>').appendTo(fm);
-        var nickipt = $('<input name="nick">').val('zhyuzh').appendTo(fm);
+        var nickipt = $('<input name="nick">').val('macaroon').appendTo(fm);
         $('<label>sex</label>').appendTo(fm);
         var sexipt = $('<input name="sex">').val(1).appendTo(fm);
         var sendbtn = $('<button style="padding:8px 16px">点击保存</button>').appendTo(grp);
@@ -125,9 +120,9 @@ define(['jquery', 'jform', 'qiniu', 'md5'], function ($, jform, qiniu, md5) {
         var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
         fm.attr('action', '../api/loginByMail');
         $('<label>mail</label>').appendTo(fm);
-        var mailipt = $('<input name="mail">').val('286052520@qq.com').appendTo(fm);
+        var mailipt = $('<input name="mail">').val('chef@jscodepie.com').appendTo(fm);
         $('<label>pw</label>').appendTo(fm);
-        var pw = $('<input name="pw">').val('zhyuzh').appendTo(fm);
+        var pw = $('<input name="pw">').val('password').appendTo(fm);
         var sendbtn = $('<button style="padding:8px 16px">点击登陆</button>').appendTo(grp);
 
         $('<br><label>RES:</label><br>').appendTo(grp);
@@ -160,7 +155,7 @@ define(['jquery', 'jform', 'qiniu', 'md5'], function ($, jform, qiniu, md5) {
         var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
         fm.attr('action', '../api/sendResetPwToMail');
         $('<label>mail</label>').appendTo(fm);
-        var mailipt = $('<input name="mail">').val('286052520@qq.com').appendTo(fm);
+        var mailipt = $('<input name="mail">').val('chef@jscodepie.com').appendTo(fm);
         var sendbtn = $('<button style="padding:8px 16px">发送重置密码</button>').appendTo(grp);
 
         $('<br><label>RES:</label><br>').appendTo(grp);
@@ -190,11 +185,11 @@ define(['jquery', 'jform', 'qiniu', 'md5'], function ($, jform, qiniu, md5) {
         var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
         fm.attr('action', '../api/changePw');
         $('<label>mail</label>').appendTo(fm);
-        var mailipt = $('<input name="mail">').val('286052520@qq.com').appendTo(fm);
+        var mailipt = $('<input name="mail">').val('chef@jscodepie.com').appendTo(fm);
         $('<label>orgPw</label>').appendTo(fm);
-        var orgpw = $('<input name="orgPw">').val('zhyuzh').appendTo(fm);
+        var orgpw = $('<input name="orgPw">').val('password').appendTo(fm);
         $('<label>newPw</label>').appendTo(fm);
-        var newpw = $('<input name="newPw">').val('zhyuzh').appendTo(fm);
+        var newpw = $('<input name="newPw">').val('password').appendTo(fm);
         var isrst = $('<input type="checkbox" name="isRest">').attr('checked', false).appendTo(fm);
         $('<span>重置密码</span>').appendTo(fm);
         var sendbtn = $('<button style="padding:8px 16px">点击修改</button>').appendTo(grp);
@@ -232,7 +227,7 @@ define(['jquery', 'jform', 'qiniu', 'md5'], function ($, jform, qiniu, md5) {
         var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
         fm.attr('action', '../api/sendRegCodeToMail');
         $('<label>mail</label>').appendTo(fm);
-        var mailipt = $('<input name="mail">').val('286052520@qq.com').appendTo(fm);
+        var mailipt = $('<input name="mail">').val('chef@jscodepie.com').appendTo(fm);
         var resendchk = $('<input type="checkbox" name="resend">').attr('checked', true).appendTo(fm);
         $('<span>重新发送</span>').appendTo(fm);
         var sendbtn = $('<button style="padding:8px 16px">点击发送验证码</button>').appendTo(grp);
@@ -263,11 +258,11 @@ define(['jquery', 'jform', 'qiniu', 'md5'], function ($, jform, qiniu, md5) {
         var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
         fm.attr('action', '../api/bindMail');
         $('<label>mail</label>').appendTo(fm);
-        var mailipt = $('<input name="mail">').val('286052520@qq.com').appendTo(fm);
+        var mailipt = $('<input name="mail">').val('chef@jscodepie.com').appendTo(fm);
         $('<label>regCode</label>').appendTo(fm);
         var regCodeipt = $('<input name="regCode">').appendTo(fm);
         $('<label>pw</label>').appendTo(fm);
-        var pwipt = $('<input name="pw">').val('zhyuzh').appendTo(fm);
+        var pwipt = $('<input name="pw">').val('password').appendTo(fm);
         var sendbtn = $('<button style="padding:8px 16px">点击绑定</button>').appendTo(grp);
 
         $('<br><label>RES:</label><br>').appendTo(grp);
@@ -492,8 +487,8 @@ define(['jquery', 'jform', 'qiniu', 'md5'], function ($, jform, qiniu, md5) {
         var jo = $(obj);
         var grp = jo.attr('id');
         var div = $('<div style="line-height:20px"></div>').appendTo(ls);
-        console.log('grp', grp, grp.substr(0,3) == '---');
-        if (grp.substr(0,3) == '---') {
+        console.log('grp', grp, grp.substr(0, 3) == '---');
+        if (grp.substr(0, 3) == '---') {
             div.css('background-color', '#EEE');
             div.css('margin-top', '8px');
         };

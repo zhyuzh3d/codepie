@@ -155,7 +155,17 @@ var __errMsgs = global.__errMsgs = {
 //重要函数------------------------------------
 /*服务端向其他地址发起http请求的promise
 成功执行resolvefn({headers:{...},body:'...'})
-options应包含所有必需参数如hostname，method等等
+options应包含所有必需参数如hostname，port,method等等,例如
+{
+    hostname: 'rsf.qbox.me',
+    port: 80,
+    path: optpath,
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': '',
+    },
+};
  */
 _fns.httpReqPrms = httpReqPrms;
 

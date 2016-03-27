@@ -7,7 +7,7 @@
 */
 
 
-var app = global._app = {};
+var _app = global._app = {};
 
 //外部库引入
 var $http = global.$http = require('http');
@@ -38,17 +38,22 @@ global._init = require('./mymodules/init.js');
 
 
 //服务器对象
-var koaSvr = app.koaSvr = $koa();
-var httpSvr = app.httpSvr = $http.createServer(koaSvr.callback());
-var sktSvr = app.sktSvr = $sktio(httpSvr);
+var koaSvr = _app.koaSvr = $koa();
+var httpSvr = _app.httpSvr = $http.createServer(koaSvr.callback());
+var sktSvr = _app.sktSvr = $sktio(httpSvr);
 
 
 //正式服务器80监听，本地测试8000
-httpSvr.listen(80);
+_app.hostName = 'www.jscodepie.com';
+_app.hostPort = 80;
+httpSvr.listen(_app.hostPort);
+
 httpSvr.on('error', function (err) {
     switch (err.code) {
     case 'EACCES':
-        httpSvr.listen(8088);
+        _app.hostName = 'localhost';
+        _app.hostPort = 8088;
+        httpSvr.listen(_app.hostPort);
         console.log('App started on localhost server.');
         break;
     default:
@@ -56,6 +61,15 @@ httpSvr.on('error', function (err) {
         break;
     };
 });
+
+var hasinit = false;
+httpSvr.on('listening', function (err) {
+    if (!hasinit) {
+        _init.init();
+        hasinit = true;
+    };
+});
+
 
 //使用body解析器
 koaSvr.use($bodyParser({

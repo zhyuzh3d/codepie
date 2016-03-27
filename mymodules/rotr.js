@@ -30,8 +30,12 @@ function* pageApp(next) {
     //将当前pie写入cookie，以备api检查权限
     this.cookies.set('pie', pienm);
 
-    //检测是否存在账号，如果没有则创建一个新用户，并将ukey写入客户端cookie
+    //检测是否存在账号ukey，并检查ukey是否合法匹配到uid，如果不合法则清除
     var ukey = this.cookies.get('ukey');
+    var ukeyexist = yield _ctnu([_rds.cli, 'zscore'], '_map:usr.ukey:usr.id', ukey);
+    if (!ukeyexist) ukey = undefined;
+
+    //如果没有则创建一个新用户，并将ukey写入客户端cookie
     if (!ukey) {
         var usr = yield _usr.createUsrCo();
         this.xdat.isNewUsr = true;

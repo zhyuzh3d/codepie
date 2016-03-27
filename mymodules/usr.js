@@ -171,6 +171,12 @@ _rotr.apis.bindMail = function () {
     return co;
 };
 
+
+
+
+
+
+
 /*修改邮箱账号密码的接口,
 可以修改非当前用户的密码，所以可以使用邮箱内重置后的密码
 req:{mail:'..@..',orgPw:'...',newPw:'...',isRest:false};
