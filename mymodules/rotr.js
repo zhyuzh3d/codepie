@@ -108,5 +108,21 @@ function* procApi(next) {
 
 
 
+
+
+
+//手工控制mypies文件夹路由，暂不缓存
+_rotr.get('api', '/mypies/:piename', procMypies);
+
+/*处理文件请求*/
+function* procMypies(next) {
+    var ctx = this;
+    var piename = ctx.params.piename;
+    var dat = $fs.readFileSync('./mypies/' + piename);
+    this.body = dat;
+    yield next;
+};
+
+
 //导出模块
 module.exports = _rotr;

@@ -46,16 +46,16 @@ _init.init = function () {
         //需要自动创建的pie列表
         var piearr = [{
             name: 'welcome',
-            url: '../myfile/welcome.js'
+            url: '../mypies/welcome.js'
         }, {
             name: 'start',
-            url: '../myfile/start.js'
+            url: '../mypies/start.js'
         }, {
             name: 'editor',
-            url: '../myfile/editor.js'
+            url: '../mypies/editor.js'
         }, {
             name: 'sample',
-            url: '../myfile/sample.js'
+            url: '../mypies/sample.js'
         }];
 
         //为usr－1创建pie

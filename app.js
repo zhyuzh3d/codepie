@@ -73,7 +73,9 @@ httpSvr.on('listening', function (err) {
 
 //静态文件目录
 koaSvr.use($filesvr({
-    root: './web/'
+    root: './myfiles/',
+    //    maxage: 0,
+    //    etag: 'algorithm'
 }));
 
 //使用body解析器
