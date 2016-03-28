@@ -13,6 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "co": "^4.6.0",
+    "compress": "^0.99.0",
     "crypto": "0.0.3",
     "koa": "^1.1.2",
     "koa-bodyparser": "^2.0.1",

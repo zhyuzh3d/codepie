@@ -4,7 +4,7 @@ require.config({
         wpie: '//' + window.location.host + '/web/wpie',
         jquery: '//cdn.bootcss.com/jquery/2.2.1/jquery.min',
         jform: '//cdn.bootcss.com/jquery.form/3.51/jquery.form.min',
-        qiniu: '//' + window.location.host + '/web/qiniu',
+        qiniu: '//' + window.location.host + '/myfile/qiniu',
         md5: '//cdn.bootcss.com/spark-md5/2.0.2/spark-md5.min',
     },
 });

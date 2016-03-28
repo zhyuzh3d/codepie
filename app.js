@@ -16,6 +16,7 @@ var $koa = global.$koa = require('koa');
 var $bodyParser = global.$bodyParser = require('koa-bodyparser');
 var $sktio = global.$sktio = require('socket.io');
 var $router = global.$router = require('koa-router');
+var $filesvr = global.$filesvr = require('koa-file-server');
 var $redis = global.$redis = require('redis');
 var $co = global.$co = require('co');
 var $uuid = global.$uuid = require('node-uuid');
@@ -70,6 +71,10 @@ httpSvr.on('listening', function (err) {
     };
 });
 
+//静态文件目录
+koaSvr.use($filesvr({
+    root: './web/'
+}));
 
 //使用body解析器
 koaSvr.use($bodyParser({
