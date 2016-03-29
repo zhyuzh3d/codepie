@@ -113,15 +113,29 @@ function* procApi(next) {
 
 //手工控制mypies文件夹路由，暂不缓存
 _rotr.get('api', '/mypies/:piename', procMypies);
+var notfoundhtml = $fs.readFileSync('mymodules/src/404.html', 'utf-8');
+var mypiefilearr = ['welcome', 'start', 'editor', 'sample', 'qiniu', 'wpie'];
 
 /*处理文件请求*/
 function* procMypies(next) {
     var ctx = this;
     var piename = ctx.params.piename;
-    var dat = $fs.readFileSync('./mypies/' + piename);
-    this.body = dat;
-    yield next;
+    var piefile = './mypies/' + piename;
+
+    if (mypiefilearr.indexOf(piename.replace(/\.js$/, '')) == -1) {
+        ctx.body = notfoundhtml;
+        yield next;
+    };
+    try {
+        var dat = yield _ctnu($fs.readFile, piefile);
+        ctx.body = dat;
+    } catch (err) {
+        ctx.body = notfoundhtml;
+    };
 };
+
+
+
 
 
 //导出模块

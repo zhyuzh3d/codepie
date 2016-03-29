@@ -42,8 +42,6 @@ define(['jquery', 'jform', 'qiniu', 'md5'], function ($, jform, qiniu, md5) {
     $('#_pieTemp').remove();
 
 
-
-
     var grp = $('<div id="---USER" style="margin:16px"></div>').appendTo(bd);
 
 

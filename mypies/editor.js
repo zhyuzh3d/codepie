@@ -2,48 +2,42 @@
 require.config({
     paths: {
         jquery: '//cdn.bootcss.com/jquery/2.2.1/jquery.min',
-        codemirror: '//cdn.bootcss.com/codemirror/5.12.0/codemirror',
+    },
+    packages: [{
+        name: "codemirror",
+        location: "../lib/codemirror/",
+        main: "lib/codemirror",
+    }],
+    map: {
+        '*': {
+            'css': 'http://cdn.bootcss.com/require-css/0.1.8/css.min.js',
+        }
+    },
+    shim: {
+        jquery: {
+            deps: ['css!../lib/codemirror/lib/codemirror.css']
+        }
     },
 });
 
 
-/*实际函数运行*/
-require(['jquery', 'codemirror'], function ($, codemirror) {
+require(['jquery', 'codemirror', '../lib/codemirror/mode/javascript/javascript.js'], function ($, CodeMirror) {
     var bd = $('#pieBox');
     var tmp = bd.children('#_pieTemp');
-    tmp.fadeOut(200, function () {
-        tmp.remove();
+    tmp.remove();
+    $('<textarea id="code">this is text in ta.\nNext line.</textarea>').appendTo(bd);
+
+    //编辑器测试
+    var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+        lineNumbers: true,
+        styleActiveLine: true,
+        matchBrackets: true
     });
 
+    //主题颜色??
 
-    var grpStart = function () {
-        var grp = $('<div style="text-align:center;margin-top:15%;line-height:1.5em"></div>');
-
-        bd.ready(function () {
-            var myCodeMirror = codemirror(grp, {
-                value: "function myScript(){return 100;}\n",
-                mode: "javascript",
-            });
-        });
-        return grp;
-    }();
-    grpStart.appendTo(bd);
-    grpStart.hide().fadeIn(1000);
+    //代码提示??
 
 
 
-
-
-
-
-    //---------底部ICP备案-----------
-    $('<style>a:link,a:visited{text-decoration:none} a:hover{text-decoration:none}</style>').appendTo(bd)
-    var icpdiv = $('<div style="font-size:12px;color:#666;text-align:center"></div').appendTo(bd);
-    icpdiv.css({
-        'position': 'absolute',
-        'bottom': '10px',
-        'text-align': 'center',
-        'width': '100%',
-    })
-    $('<a href="http://www.miitbeian.gov.cn">[苏ICP备15036923号-2]</a>').appendTo(icpdiv);
 });
