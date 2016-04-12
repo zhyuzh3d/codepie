@@ -35,6 +35,11 @@ function newPieCo(piename, usrid) {
 
 
 
+<!--    <script src='../lib/codemirror/lib/codemirror.js'></script>-->
+<!--    <script src='../lib/codemirror/addon/hint/show-hint.js'></script>-->
+<!--    <script src='../lib/codemirror/addon/hint/javascript-hint.js'></script>-->
+<!--    <script src='../lib/codemirror/mode/javascript/javascript.js'></script>-->
+<!--    <link rel='stylesheet' href='../lib/codemirror/addon/hint/show-hint.css'>-->
 
 
 

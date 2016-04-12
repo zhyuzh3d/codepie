@@ -180,7 +180,7 @@ _rotr.apis.setPieStateByName = function () {
 */
 _pie.setPieStateByNameCo = setPieStateByNameCo;
 
-function setPieStateByNameCo(uid, pname,state) {
+function setPieStateByNameCo(uid, pname, state) {
     var co = $co(function* () {
         var usrkey = 'usr-' + uid;
         var piename = uid + '/' + pname;
@@ -199,6 +199,65 @@ function setPieStateByNameCo(uid, pname,state) {
     });
     return co;
 };
+
+
+
+/*获取pie的基本信息，如作者、js路径、pieId等
+这些信息都是公开的，因此可以获取其他人的pie信息
+req:{authorId:12,name:'...'},authorId为空默认值为1
+res:{id:12,name:'...',uid:12,url:'...'}
+*/
+_rotr.apis.getPieInfo = function () {
+    var ctx = this;
+    var co = $co(function* () {
+        var uid = ctx.xdat.uid;
+
+        var name = ctx.query.name || ctx.request.body.name;
+        if (!name || !_cfg.regx.pieName.test(name)) throw Error('Pie name format error.');
+
+        var authid = ctx.query.authid || ctx.request.body.authid;
+        if (authid && !_cfg.regx.int.test(authid)) throw Error('Author ID format error.');
+        if (!authid) authid = 1;
+
+        var res = yield getPieInfoCo(authid, name);
+        ctx.body = __newMsg(1, 'OK', res);
+        return ctx;
+    });
+    return co;
+};
+
+/*获取pie的基本信息，这些信息时公开的，所以没有限制
+ */
+_pie.getPieInfoCo = getPieInfoCo;
+
+function getPieInfoCo(uid, pname) {
+    var co = $co(function* () {
+        var usrkey = 'usr-' + uid;
+        var piename = uid + '/' + pname;
+
+        //找到pid
+        var pid = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.name:pie.id', piename);
+        if (!pid) throw Error('Can not find the pie id [' + pname + ']');
+
+        //先检查是否存在
+        var piekey = 'pie-' + pid;
+        var isExsist = yield _ctnu([_rds.cli, 'exists'], piekey);
+        if (!isExsist) throw Error('The pie [' + pname + '] does not exists.');
+
+        //获取pie的基本信息
+        var kinfo = yield _ctnu([_rds.cli, 'hgetall'], piekey);
+        var res = {
+            id: kinfo.id,
+            name: kinfo.name,
+            uid: kinfo.uid,
+            url: kinfo.url,
+        };
+
+        return res;
+    });
+    return co;
+};
+
 
 
 

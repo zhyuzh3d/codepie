@@ -283,6 +283,39 @@ define(['jquery', 'jform', 'qiniu', 'md5'], function ($, jform, qiniu, md5) {
 
     var grp = $('<div id="---PIE" style="margin:16px"></div>').appendTo(bd);
 
+    /*获取App（pie）公开信息的接口*/
+    var grpGetPieInfo = function () {
+        var grp = $('<div id="grpGetPieInfo" style="margin:16px"></div>').appendTo(bd);
+        grp.append($('<hr>'));
+        grp.append($('<h3>获取pie公开信息的接口[../api/getPieInfo]</h3>'));
+
+        var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
+        fm.attr('action', '../api/getPieInfo');
+        $('<label>name</label>').appendTo(fm);
+        var nameipt = $('<input name="name">').appendTo(fm);
+        var authoridipt = $('<input name="authorId" value="1">').appendTo(fm);
+        var sendbtn = $('<button style="padding:8px 16px">点击获取</button>').appendTo(grp);
+
+        $('<br><label>RES:</label><br>').appendTo(grp);
+        var resdiv = $('<div>...</div>').appendTo(grp);
+
+
+        sendbtn.click(function (e) {
+            fm.ajaxSubmit({
+                type: 'POST',
+                success: function (res) {
+                    console.log('getPieInfo', res);
+                    resdiv.html(JSON.stringify(res));
+                },
+            });
+        });
+
+        return grp;
+    }();
+
+
+
+
     /*获取我的pieapp列表的接口*/
     var grpGetPieList = function () {
         var grp1 = $('<div id="grpGetPieList" style="margin:16px"></div>').appendTo(bd);
