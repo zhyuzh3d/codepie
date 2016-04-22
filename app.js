@@ -23,6 +23,7 @@ var $uuid = global.$uuid = require('node-uuid');
 var $qiniu = global.$qiniu = require('qiniu');
 var $mailer = global.$mailer = require('nodemailer');
 var $crypto = global.$crypto = require('crypto');
+var $cookie = global.$cookie = require('cookie');
 
 //自定义库引入
 global._mime = require('./mymodules/mime.js');
@@ -31,6 +32,8 @@ global._cfg = require('./mymodules/cfg.js');
 global._fns = require('./mymodules/fns.js');
 global._rds = require('./mymodules/rds.js');
 global._rotr = require('./mymodules/rotr.js');
+global._skt = require('./mymodules/skt.js');
+
 global._usr = require('./mymodules/usr.js');
 global._pie = require('./mymodules/pie.js');
 global._mdwr = require('./mymodules/mdwr.js');
@@ -100,6 +103,13 @@ function* test(next) {
     yield next;
 }
 */
+
+
+//启动socketio处理流程
+_app.sktSvr.on('connection', function (skt) {
+    _skt.start(skt);
+});
+
 
 
 

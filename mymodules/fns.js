@@ -120,9 +120,30 @@ function __newMsg(code, text, data) {
     return {
         code: code,
         text: text,
-        data: data
+        data: data,
+        time: Number(new Date()),
     };
 };
+
+
+
+/*生成skt转发的信息格式
+每个客户端skt都有一个id， 信息总是从一个socket发送到另一个
+sn序号用于识别不同信息，默认为时间戳
+sn和key豆由app写入data里面，这里不做处理
+*/
+global.__newSmsg = __newSmsg;
+
+function __newSmsg(fromSid, tarSid, data) {
+    var tm = Number(new Date());
+    return {
+        from: fromSid,
+        tar: tarSid,
+        data: data,
+        time: tm,
+    };
+};
+
 
 
 //补足cfg的函数设定参数--------------------------------

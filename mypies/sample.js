@@ -1,18 +1,18 @@
 /*外部库设置*/
 require.config({
     paths: {
-        wpie: '//' + window.location.host + '/web/wpie',
-        jquery: '//cdn.bootcss.com/jquery/2.2.1/jquery.min',
-        jform: '//cdn.bootcss.com/jquery.form/3.51/jquery.form.min',
-        qiniu: '//' + window.location.host + '/mypies/qiniu',
-        md5: '//cdn.bootcss.com/spark-md5/2.0.2/spark-md5.min',
+        jquery: '//' + window.location.host + '/lib/jquery/2.2.1/jquery.min',
+        piejs: '//' + window.location.host + '/lib/piejs/0.1.1/piejs',
+        jform: '//' + window.location.host + '/lib/jquery.form/3.51/jquery.form.min',
+        qiniu: '//' + window.location.host + '/lib/qiniu/qiniu',
+        md5: '//' + window.location.host + '/lib/spark-md5/2.0.2/spark-md5.min',
     },
 });
 
 
 
 /*实际函数运行*/
-define(['jquery', 'jform', 'qiniu', 'md5'], function ($, jform, qiniu, md5) {
+define(['jquery', 'piejs', 'jform', 'qiniu', 'md5'], function ($, piejs, jform, qiniu, md5) {
     var host = window.location.host;
 
     /*标题*/
@@ -40,6 +40,42 @@ define(['jquery', 'jform', 'qiniu', 'md5'], function ($, jform, qiniu, md5) {
     pietop.append($('<h1 style="margin:0">Sample</h1>'));
     pietop.append($('<div>公共接口示例</div><br>'));
     $('#_pieTemp').remove();
+
+
+    var grp = $('<div id="---SKTS" style="margin:16px"></div>').appendTo(bd);
+
+    /*通过uid获取对应的端口skts*/
+    var grpGetSktsByUid = function () {
+        var grp = $('<div id="grpGetSktsByUid" style="margin:16px"></div>').appendTo(bd);
+        grp.append($('<hr>'));
+        grp.append($('<h3>通过uid获取skts[sktapi:getSktsByUidGrp]</h3>'));
+
+        var fm = $('<form></form>').appendTo(grp);
+        $('<label>uid</label>').appendTo(fm);
+        var uidipt = $('<input>').val('1').appendTo(fm);
+        var sendbtn = $('<button style="padding:8px 16px">点击获取</button>').appendTo(grp);
+
+        $('<br><label>RES:</label><br>').appendTo(grp);
+        var resdiv = $('<div>...</div>').appendTo(grp);
+
+        sendbtn.click(function (e) {
+            var dt = {
+                uid: uidipt.val(),
+            };
+            piejs.sktio.emit('getSktsByUid', dt)
+        });
+
+        piejs.sktio.on('getSktsByUid', function (msg) {
+            console.log('skt:getSktsByUid', msg);
+            resdiv.html(JSON.stringify(msg));
+        });
+
+        return grp;
+    }();
+
+
+
+
 
 
     var grp = $('<div id="---USER" style="margin:16px"></div>').appendTo(bd);
@@ -266,7 +302,6 @@ define(['jquery', 'jform', 'qiniu', 'md5'], function ($, jform, qiniu, md5) {
         $('<br><label>RES:</label><br>').appendTo(grp);
         var resdiv = $('<div>...</div>').appendTo(grp);
 
-
         sendbtn.click(function (e) {
             fm.ajaxSubmit({
                 type: 'POST',
@@ -361,7 +396,7 @@ define(['jquery', 'jform', 'qiniu', 'md5'], function ($, jform, qiniu, md5) {
             fm.ajaxSubmit({
                 type: 'POST',
                 success: function (res) {
-                    console.log('createpie', res);
+                    console.log('getPieList', res);
                     resdiv.html(JSON.stringify(res));
                     if (res.code == 1) {
                         for (var i in res.data.pieArr) {
@@ -439,7 +474,7 @@ define(['jquery', 'jform', 'qiniu', 'md5'], function ($, jform, qiniu, md5) {
         var resdiv = $('<div>...</div>').appendTo(grp);
 
 
-        function addFile(jo,key, state) {
+        function addFile(jo, key, state) {
             var li = $('<span></span>');
             var pfm = $('<form method="post" enctype="text/plain"></form>').appendTo(li);
             pfm.attr('action', '../api/deleteFile');
@@ -473,7 +508,7 @@ define(['jquery', 'jform', 'qiniu', 'md5'], function ($, jform, qiniu, md5) {
                         var li = $('<li></li>').appendTo(resul);
                         var furl = resobj.domain + one.key;
                         li.html('<a target="_blank" href="' + furl + '">' + furl + '</a>');
-                        addFile(li,one.key);
+                        addFile(li, one.key);
                     });
                 },
             });
@@ -606,7 +641,6 @@ define(['jquery', 'jform', 'qiniu', 'md5'], function ($, jform, qiniu, md5) {
         var jo = $(obj);
         var grp = jo.attr('id');
         var div = $('<div style="line-height:20px"></div>').appendTo(ls);
-        console.log('grp', grp, grp.substr(0, 3) == '---');
         if (grp.substr(0, 3) == '---') {
             div.css('background-color', '#EEE');
             div.css('margin-top', '8px');

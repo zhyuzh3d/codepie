@@ -16,46 +16,64 @@ _rotr.get('app', '/app/:puid/:appname', pageApp);
 
 
 var pieAppHtml = $fs.readFileSync('mymodules/src/pieApp.html', 'utf-8');
+var notFoundHtml = $fs.readFileSync('mymodules/src/404.html', 'utf-8');
 
-/*生成app页面;如果有uid那么使用，如果没有那么就设定为1*/
+/*生成app页面;如果有/uid/参数那么使用，如果没有那么就设定为1*/
 function* pageApp(next) {
-    var puid = this.xdat.pieUid = this.params.puid;
+    var puid = this.params.puid;
     if (!puid) puid = 1;
-    var pienm = this.xdat.pieName = puid + '/' + this.params.appname;
+    var pienm = puid + '/' + this.params.appname;
 
     //从_map:pie.name:pie.id取pieid
     var pieid = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.name:pie.id', pienm);
-    var piekeynm = this.xdat.pieKey = 'pie-' + pieid;
+    if (!pieid) {
+        var html = notFoundHtml;
+        this.body = notFoundHtml;
+    } else {
+        var piekeynm = this.xdat.pieKey = 'pie-' + pieid;
 
-    //将当前pie写入cookie，以备api检查权限
-    this.cookies.set('pie', pienm);
+        //检测是否存在账号ukey，并检查ukey是否合法匹配到uid，如果不合法则清除
+        var ukey = this.cookies.get('ukey');
+        var uid = yield _ctnu([_rds.cli, 'zscore'], '_map:usr.ukey:usr.id', ukey);
+        if (!uid) ukey = undefined;
 
-    //检测是否存在账号ukey，并检查ukey是否合法匹配到uid，如果不合法则清除
-    var ukey = this.cookies.get('ukey');
-    var ukeyexist = yield _ctnu([_rds.cli, 'zscore'], '_map:usr.ukey:usr.id', ukey);
-    if (!ukeyexist) ukey = undefined;
+        //如果没有则创建一个新用户，并将ukey写入客户端cookie
+        if (!ukey) {
+            var usr = yield _usr.createUsrCo();
+            this.xdat.isNewUsr = true;
+            ukey = usr.ukey;
+            uid = usr.id;
+        };
 
-    //如果没有则创建一个新用户，并将ukey写入客户端cookie
-    if (!ukey) {
-        var usr = yield _usr.createUsrCo();
-        this.xdat.isNewUsr = true;
-        this.cookies.set('ukey', usr.ukey);
-        ukey = usr.ukey;
-    };
-    this.xdat.ukey = ukey;
+        //从rds数据库获取app的数据（js文件地址）
+        var pieUrl = yield _ctnu([_rds.cli, 'hget'], piekeynm, 'url');
+        var pienmshort = pienm.replace(/^\d\//, '');
 
-    //从rds数据库获取app的数据（js文件地址）
-    var pieUrl = yield _ctnu([_rds.cli, 'hget'], piekeynm, 'url');
-    this.xdat.pieUrl = pieUrl;
-    var pienmshort = pienm.replace(/^\d\//, '');
+        //将当前数据写入xdat，以备后续使用
+        this.xdat.ukey = ukey;
+        this.xdat.uid = uid;
+        this.xdat.pid = pieid;
+        this.xdat.puid = puid;
+        this.xdat.pname = pienm;
+        this.xdat.purl = pieUrl;
 
-    //发送嵌有app.js路径的html模版;<body>部分应该被app替换;默认自带jquery
-    var piehtml = pieAppHtml;
-    piehtml = piehtml.replace(/{{pieNameShort}}/g, pienmshort);
-    piehtml = piehtml.replace(/{{pieUrl}}/g, pieUrl);
-    piehtml = piehtml.replace(/{{pieName}}/g, pienm);
 
-    this.body = piehtml;
+        //将当前pie写入cookie，以备api检查权限
+        this.cookies.set('uid', uid);
+        this.cookies.set('ukey', ukey);
+        this.cookies.set('pid', pieid);
+        this.cookies.set('puid', puid);
+        this.cookies.set('pname', pienm);
+        this.cookies.set('purl', pieUrl);
+
+        //发送嵌有app.js路径的html模版;<body>部分应该被app替换;默认自带jquery;ts强制qiniu刷新
+        var piehtml = pieAppHtml;
+        piehtml = piehtml.replace(/{{pieNameShort}}/g, pienmshort);
+        piehtml = piehtml.replace(/{{pieUrl}}/g, pieUrl + '?ts=' + Number(new Date()));
+        piehtml = piehtml.replace(/{{pieName}}/g, pienm);
+
+        this.body = piehtml;
+    }
     yield next;
 };
 

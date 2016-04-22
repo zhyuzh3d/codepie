@@ -136,7 +136,7 @@ function getFileListCo(prefix, limit, marker) {
 
 /*http接口POST：上传字符串或数据，存储到七牛，返回文件url
 自动覆盖已有文件，存储目录锁定/uid/...
-req:{data,file};如果没有data则为空字符串，如果没有file则随机一个md5文件名； 自动判断扩展名
+req:{data,file};如果没有data则为空字符串，如果没有file则随机一个md5文件名;自动判断扩展名
 res:{url:'bucketdomain/uid/file}
 */
 _rotr.apis.uploadData = function () {
@@ -146,6 +146,7 @@ _rotr.apis.uploadData = function () {
 
         var data = ctx.request.body.data || ctx.query.data;
         var file = ctx.request.body.file || ctx.query.file;
+
         var filekey = uid + '/';
         (file) ? filekey += file: filekey += __md5();
 

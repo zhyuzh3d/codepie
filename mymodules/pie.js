@@ -204,7 +204,7 @@ function setPieStateByNameCo(uid, pname, state) {
 
 /*获取pie的基本信息，如作者、js路径、pieId等
 这些信息都是公开的，因此可以获取其他人的pie信息
-req:{authorId:12,name:'...'},authorId为空默认值为1
+req:{authorId:12,name:'...'},authorId为空默认值为自己的uid
 res:{id:12,name:'...',uid:12,url:'...'}
 */
 _rotr.apis.getPieInfo = function () {
@@ -217,7 +217,7 @@ _rotr.apis.getPieInfo = function () {
 
         var authid = ctx.query.authid || ctx.request.body.authid;
         if (authid && !_cfg.regx.int.test(authid)) throw Error('Author ID format error.');
-        if (!authid) authid = 1;
+        if (!authid) authid = uid;
 
         var res = yield getPieInfoCo(authid, name);
         ctx.body = __newMsg(1, 'OK', res);
@@ -244,13 +244,15 @@ function getPieInfoCo(uid, pname) {
         var isExsist = yield _ctnu([_rds.cli, 'exists'], piekey);
         if (!isExsist) throw Error('The pie [' + pname + '] does not exists.');
 
-        //获取pie的基本信息
+        //获取pie的基本信息,附加权限信息
         var kinfo = yield _ctnu([_rds.cli, 'hgetall'], piekey);
+        var pwr = (kinfo.uid == uid) ? __usrPower.author : __usrPower.usr;
         var res = {
             id: kinfo.id,
             name: kinfo.name,
             uid: kinfo.uid,
             url: kinfo.url,
+            power: pwr,
         };
 
         return res;
