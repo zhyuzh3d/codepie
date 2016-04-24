@@ -202,12 +202,12 @@ function setPieStateByNameCo(uid, pname, state) {
 
 
 
-/*获取pie的基本信息，如作者、js路径、pieId等
+/*使用pieUid和pieName获取pie的基本信息，如作者、js路径、pieId等
 这些信息都是公开的，因此可以获取其他人的pie信息
-req:{authorId:12,name:'...'},authorId为空默认值为自己的uid
-res:{id:12,name:'...',uid:12,url:'...'}
+req:{uid:12,name:'...'},authorId为空默认值为自己的uid
+res:{id:12,name:'...',uid:12,url:'...',power:'...'}
 */
-_rotr.apis.getPieInfo = function () {
+_rotr.apis.getPieInfoByPuidPnm = function () {
     var ctx = this;
     var co = $co(function* () {
         var uid = ctx.xdat.uid;
@@ -215,7 +215,7 @@ _rotr.apis.getPieInfo = function () {
         var name = ctx.query.name || ctx.request.body.name;
         if (!name || !_cfg.regx.pieName.test(name)) throw Error('Pie name format error.');
 
-        var authid = ctx.query.authid || ctx.request.body.authid;
+        var authid = ctx.query.uid || ctx.request.body.uid;
         if (authid && !_cfg.regx.int.test(authid)) throw Error('Author ID format error.');
         if (!authid) authid = uid;
 
@@ -225,6 +225,56 @@ _rotr.apis.getPieInfo = function () {
     });
     return co;
 };
+
+/*使用id获取pie的基本信息，如作者、js路径、pieId等
+这些信息都是公开的，因此可以获取其他人的pie信息
+req:{id:12}
+res:{id:12,name:'...',uid:12,url:'...',power:'...'}
+*/
+_rotr.apis.getPieInfoByPid = function () {
+    var ctx = this;
+    var co = $co(function* () {
+        var uid = ctx.xdat.uid;
+
+        var thepid = ctx.query.id || ctx.request.body.id;
+        if (!thepid || !_cfg.regx.int.test(thepid)) throw Error('Pie id format error.');
+
+        var res = yield getPieInfoByPidCo(thepid);
+        //加入权限写入
+        res.power= (res.uid == uid) ? 'author' : 'usr';
+        ctx.body = __newMsg(1, 'OK', res);
+        return ctx;
+    });
+    return co;
+};
+
+/*通过pid获取pie的基本信息，这是获取pie公开信息的基本接口
+这些信息时公开的，所以没有限制
+*/
+_pie.getPieInfoByPidCo = getPieInfoByPidCo;
+
+function getPieInfoByPidCo(pid) {
+    var co = $co(function* () {
+        //先检查是否存在
+        var piekey = 'pie-' + pid;
+        var isExsist = yield _ctnu([_rds.cli, 'exists'], piekey);
+        if (!isExsist) throw Error('The pie [' + pname + '] does not exists.');
+
+        //获取pie的基本信息,附加权限信息
+        var pinfo = yield _ctnu([_rds.cli, 'hgetall'], piekey);
+        var res = {
+            id: pinfo.id,
+            name: pinfo.name,
+            uid: pinfo.uid,
+            url: pinfo.url,
+        };
+        return res;
+    });
+    return co;
+};
+
+
+
 
 /*获取pie的基本信息，这些信息时公开的，所以没有限制
  */
@@ -246,7 +296,7 @@ function getPieInfoCo(uid, pname) {
 
         //获取pie的基本信息,附加权限信息
         var kinfo = yield _ctnu([_rds.cli, 'hgetall'], piekey);
-        var pwr = (kinfo.uid == uid) ? __usrPower.author : __usrPower.usr;
+        var pwr = (kinfo.uid == uid) ? 'author' : 'usr';
         var res = {
             id: kinfo.id,
             name: kinfo.name,

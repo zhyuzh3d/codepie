@@ -44,11 +44,74 @@ define(['jquery', 'piejs', 'jform', 'qiniu', 'md5'], function ($, piejs, jform, 
 
     var grp = $('<div id="---SKTS" style="margin:16px"></div>').appendTo(bd);
 
+
+    /*通过pid获取对应的端口skts*/
+    var grpGetSktsByUidPid = function () {
+        var grp = $('<div id="grpGetSktsByUidPid" style="margin:16px"></div>').appendTo(bd);
+        grp.append($('<hr>'));
+        grp.append($('<h3>通过uid获取skts[sktapi:getSktsByUidPid]</h3>'));
+
+        var fm = $('<form></form>').appendTo(grp);
+        $('<label>uid</label>').appendTo(fm);
+        var uidipt = $('<input>').val('1').appendTo(fm);
+        $('<label>pid</label>').appendTo(fm);
+        var pidipt = $('<input>').val('4').appendTo(fm);
+        var sendbtn = $('<button style="padding:8px 16px">点击获取</button>').appendTo(grp);
+
+        $('<br><label>RES:</label><br>').appendTo(grp);
+        var resdiv = $('<div>...</div>').appendTo(grp);
+
+        sendbtn.click(function (e) {
+            var dt = {
+                uid: uidipt.val(),
+                pid: pidipt.val(),
+            };
+            piejs.sktio.emit('getSktsByUidPid', dt);
+        });
+
+        piejs.sktio.on('getSktsByUidPid', function (msg) {
+            console.log('skt:getSktsByUidPid', msg);
+            resdiv.html(JSON.stringify(msg));
+        });
+
+        return grp;
+    }();
+
+
+    /*通过pid获取对应的端口skts*/
+    var grpGetSktsByPid = function () {
+        var grp = $('<div id="grpGetSktsByPid" style="margin:16px"></div>').appendTo(bd);
+        grp.append($('<hr>'));
+        grp.append($('<h3>通过uid获取skts[sktapi:getSktsByPid]</h3>'));
+
+        var fm = $('<form></form>').appendTo(grp);
+        $('<label>pid</label>').appendTo(fm);
+        var pidipt = $('<input>').val('4').appendTo(fm);
+        var sendbtn = $('<button style="padding:8px 16px">点击获取</button>').appendTo(grp);
+
+        $('<br><label>RES:</label><br>').appendTo(grp);
+        var resdiv = $('<div>...</div>').appendTo(grp);
+
+        sendbtn.click(function (e) {
+            var dt = {
+                pid: pidipt.val(),
+            };
+            piejs.sktio.emit('getSktsByPid', dt);
+        });
+
+        piejs.sktio.on('getSktsByPid', function (msg) {
+            console.log('skt:getSktsByPid', msg);
+            resdiv.html(JSON.stringify(msg));
+        });
+
+        return grp;
+    }();
+
     /*通过uid获取对应的端口skts*/
     var grpGetSktsByUid = function () {
         var grp = $('<div id="grpGetSktsByUid" style="margin:16px"></div>').appendTo(bd);
         grp.append($('<hr>'));
-        grp.append($('<h3>通过uid获取skts[sktapi:getSktsByUidGrp]</h3>'));
+        grp.append($('<h3>通过uid获取skts[sktapi:getSktsByUid]</h3>'));
 
         var fm = $('<form></form>').appendTo(grp);
         $('<label>uid</label>').appendTo(fm);
@@ -62,7 +125,7 @@ define(['jquery', 'piejs', 'jform', 'qiniu', 'md5'], function ($, piejs, jform, 
             var dt = {
                 uid: uidipt.val(),
             };
-            piejs.sktio.emit('getSktsByUid', dt)
+            piejs.sktio.emit('getSktsByUid', dt);
         });
 
         piejs.sktio.on('getSktsByUid', function (msg) {
@@ -80,8 +143,64 @@ define(['jquery', 'piejs', 'jform', 'qiniu', 'md5'], function ($, piejs, jform, 
 
     var grp = $('<div id="---USER" style="margin:16px"></div>').appendTo(bd);
 
+    /*获取其他人的基础信息，使用mail*/
+    var grpGetUsrInfoByMail = function () {
+        var grp = $('<div id="grpGetUsrInfoByMail" style="margin:16px"></div>').appendTo(bd);
+        grp.append($('<hr>'));
+        grp.append($('<h3>获取他人信息，已知邮箱[../api/getUsrInfoByMail]</h3>'));
 
-    /*修改个人资料*/
+        var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
+        fm.attr('action', '../api/getUsrInfoByMail');
+        $('<label>mail</label>').appendTo(fm);
+        var mailipt = $('<input name="mail">').val('chef@jscodepie.com').appendTo(fm);
+        var sendbtn = $('<button style="padding:8px 16px">点击获取</button>').appendTo(grp);
+
+        $('<br><label>RES:</label><br>').appendTo(grp);
+        var resdiv = $('<div>...</div>').appendTo(grp);
+
+        sendbtn.click(function (e) {
+            fm.ajaxSubmit({
+                type: 'POST',
+                success: function (res) {
+                    console.log('getUsrInfoByMail', res);
+                    resdiv.html(JSON.stringify(res));
+                },
+            });
+        });
+
+        return grp;
+    }();
+
+
+     /*获取其他人的基础信息，使用用户id*/
+    var grpGetUsrInfoByUid = function () {
+        var grp = $('<div id="grpGetUsrInfoByUid" style="margin:16px"></div>').appendTo(bd);
+        grp.append($('<hr>'));
+        grp.append($('<h3>获取他人信息，已知用户id[../api/getUsrInfoByUid]</h3>'));
+
+        var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
+        fm.attr('action', '../api/getUsrInfoByUid');
+        $('<label>id</label>').appendTo(fm);
+        var mailipt = $('<input name="id">').val('1').appendTo(fm);
+        var sendbtn = $('<button style="padding:8px 16px">点击获取</button>').appendTo(grp);
+
+        $('<br><label>RES:</label><br>').appendTo(grp);
+        var resdiv = $('<div>...</div>').appendTo(grp);
+
+        sendbtn.click(function (e) {
+            fm.ajaxSubmit({
+                type: 'POST',
+                success: function (res) {
+                    console.log('getUsrInfoByUid', res);
+                    resdiv.html(JSON.stringify(res));
+                },
+            });
+        });
+
+        return grp;
+    }();
+
+    /*设置自己的个人资料*/
     var grpSetProfile = function () {
         var grp = $('<div id="grpSetProfile" style="margin:16px"></div>').appendTo(bd);
         grp.append($('<hr>'));
@@ -318,22 +437,50 @@ define(['jquery', 'piejs', 'jform', 'qiniu', 'md5'], function ($, piejs, jform, 
 
     var grp = $('<div id="---PIE" style="margin:16px"></div>').appendTo(bd);
 
-    /*获取App（pie）公开信息的接口*/
-    var grpGetPieInfo = function () {
-        var grp = $('<div id="grpGetPieInfo" style="margin:16px"></div>').appendTo(bd);
+     /*获取其他人Pie的基础信息，使用pid*/
+    var grpGetPieInfoByPid = function () {
+        var grp = $('<div id="grpGetPieInfoByPid" style="margin:16px"></div>').appendTo(bd);
         grp.append($('<hr>'));
-        grp.append($('<h3>获取pie公开信息的接口[../api/getPieInfo]</h3>'));
+        grp.append($('<h3>获取他pie信息，已知pid[../api/getPieInfoByPid]</h3>'));
 
         var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
-        fm.attr('action', '../api/getPieInfo');
-        $('<label>name</label>').appendTo(fm);
-        var nameipt = $('<input name="name">').appendTo(fm);
-        var authoridipt = $('<input name="authorId" value="1">').appendTo(fm);
+        fm.attr('action', '../api/getPieInfoByPid');
+        $('<label>id</label>').appendTo(fm);
+        var pidipt = $('<input name="id">').val('4').appendTo(fm);
         var sendbtn = $('<button style="padding:8px 16px">点击获取</button>').appendTo(grp);
 
         $('<br><label>RES:</label><br>').appendTo(grp);
         var resdiv = $('<div>...</div>').appendTo(grp);
 
+        sendbtn.click(function (e) {
+            fm.ajaxSubmit({
+                type: 'POST',
+                success: function (res) {
+                    console.log('getPieInfoByPid', res);
+                    resdiv.html(JSON.stringify(res));
+                },
+            });
+        });
+
+        return grp;
+    }();
+
+    /*获取App（pie）公开信息的接口*/
+    var grpGetPieInfoByPuidPnm = function () {
+        var grp = $('<div id="grpGetPieInfoByPuidPnm" style="margin:16px"></div>').appendTo(bd);
+        grp.append($('<hr>'));
+        grp.append($('<h3>获取pie公开信息的接口[../api/getPieInfoByPuidPnm]</h3>'));
+
+        var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
+        fm.attr('action', '../api/getPieInfoByPuidPnm');
+        $('<label>uid</label>').appendTo(fm);
+        var authoridipt = $('<input name="uid" value="1">').appendTo(fm);
+        $('<label>name</label>').appendTo(fm);
+        var nameipt = $('<input name="name">').val('sample').appendTo(fm);
+        var sendbtn = $('<button style="padding:8px 16px">点击获取</button>').appendTo(grp);
+
+        $('<br><label>RES:</label><br>').appendTo(grp);
+        var resdiv = $('<div>...</div>').appendTo(grp);
 
         sendbtn.click(function (e) {
             fm.ajaxSubmit({

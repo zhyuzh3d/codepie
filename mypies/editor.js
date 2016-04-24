@@ -41,7 +41,7 @@ require(modarr, function ($, piejs, CodeMirror) {
 
     //获取地址栏参数
     var appname = piejs.getUrlParam('pieName');
-    var authid = piejs.getUrlParam('authorId');
+    var authid = piejs.getUrlParam('pieUid');
 
 
     //按钮组
@@ -119,11 +119,11 @@ require(modarr, function ($, piejs, CodeMirror) {
     $('<style>.CodeMirror{height:auto}</style>').appendTo(bd);
 
     //先获取目标app的js文件路径，
-    var tarapi = '../api/getPieInfo?name=' + appname;
-    if (authid) tarapi += '&authorId=' + authid;
+    var tarapi = '../api/getPieInfoByPuidPnm?name=' + appname;
+    if (authid) tarapi += '&uid=' + authid;
 
     $.post(tarapi, function (msg) {
-        if (msg.code != 1) throw Error('GetPieInfo failed:' + msg.text);
+        if (msg.code != 1) throw Error('getPieInfoByPuidPnm failed:' + msg.text);
         //如果是author，显示savebtn
         if (msg.data.power == piejs.usrPower.author) {
             btngrp.saveBtn.show();

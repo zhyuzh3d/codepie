@@ -382,5 +382,70 @@ _rotr.apis.setProfile = function () {
 };
 
 
+/*通过usr.mail获取uid等基础信息
+{mail:'...'}
+{uid:12,nick:'..',sex:'..'}
+*/
+_rotr.apis.getUsrInfoByMail = function () {
+    var ctx = this;
+    var co = $co(function* () {
+        var mail = ctx.query.mail || ctx.request.body.mail;
+        if (!mail || !_cfg.regx.mail.test(mail)) throw Error('Mail format err.');
+
+        //获取uid
+        var theuid = yield _ctnu([_rds.cli, 'zscore'], '_map:usr.mail:usr.id', mail);
+        if (!theuid) throw Error('Cant find the user.');
+
+        //获取usr信息
+        var theusr = yield getUsrInfoByUidCo(theuid);
+        ctx.body = __newMsg(1, 'OK', theusr);
+        return ctx;
+    });
+    return co;
+};
+
+/*通过usr.id获取uid等基础信息
+{id:'...'}
+{uid:12,nick:'..',sex:'..'}
+*/
+_rotr.apis.getUsrInfoByUid = function () {
+    var ctx = this;
+    var co = $co(function* () {
+        var theuid = ctx.query.id || ctx.request.body.id;
+        if (!theuid || !_cfg.regx.int.test(theuid)) throw Error('User id format err.');
+
+        //获取usr信息
+        var theusr = yield getUsrInfoByUidCo(theuid);
+        ctx.body = __newMsg(1, 'OK', theusr);
+        return ctx;
+    });
+    return co;
+};
+
+/*根据uid获取其它usr的基本信息
+这是最基础的获取其他usr信息的基础
+*/
+function getUsrInfoByUidCo(uid) {
+    var co = $co(function* () {
+        var mu = _rds.cli.multi();
+        mu.hmget('usr-' + uid, 'id', 'nick', 'sex');
+        var res = yield _ctnu([mu, 'exec']);
+        if (!res[0] || !res[0][0]) throw Error('User does not exist.');
+        var uinfo = res[0];
+        var usr = {
+            id: uinfo[0],
+            nick: uinfo[1],
+            sex: uinfo[2],
+        }
+        return usr;
+    });
+    return co;
+};
+
+
+
+
+
+
 //导出模块
 module.exports = _usr;
