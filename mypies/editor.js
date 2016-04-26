@@ -69,7 +69,21 @@ require(modarr, function ($, piejs, CodeMirror) {
                     tipdiv.show().html('uploading...')
                     $.post("../api/uploadData", data, function (res) {
                         tipdiv.show().html('upload ok!');
-                        tipdiv.fadeOut(1000);
+                        tipdiv.fadeOut(1000, function () {
+                            //向所有从属端发送更新命令
+                            piejs.sktParty.forEach(function (one, i) {
+                                var dat = {
+                                    tarSid: one,
+                                    tarApi: '_runCmd',
+                                    data: {
+                                        cmd: 'location.reload()',
+                                    },
+                                    sn: Number(new Date()),
+                                };
+                                piejs.sktio.emit('transSmsg', dat);
+                                console.log('sendcmd', dat);
+                            });
+                        });
                     });
 
                 } else {
@@ -78,17 +92,20 @@ require(modarr, function ($, piejs, CodeMirror) {
             };
         });
 
-        //预览按钮，新窗口打开，autoRefresh=true
+        //预览按钮，新窗口打开，editorSid='',autoReload=true
         var previewA = $('<a target="_blank"></a>').appendTo(grp);
-        previewA.attr('href', './' + appname + '?autoReload=true')
         var previewBtn = $('<button style="padding:4px 8px">预览</button>').appendTo(previewA);
         grp.previewA = previewA;
         previewA.css('margin-right', '12px');
         previewA.hide();
+        //预览地址
+        var prevurl = appname + '?partySid=' + piejs.sktio.id + '&autoCmd=true';
+        previewA.attr('href', prevurl);
 
         //app名称
-        grp.apptitle = $('<span>...</span>').appendTo(grp);
-        grp.appurl = $('<span>...</span>').appendTo(grp);
+        grp.titleSpan = $('<span style="color:#888"></span>').appendTo(grp);
+        grp.apptitle = $('<span>...</span>').appendTo(grp.titleSpan);
+        grp.appurl = $('<span>...</span>').appendTo(grp.titleSpan);
 
         grp.apptitle.html('[ ' + appname + ' ]');
 
@@ -125,9 +142,10 @@ require(modarr, function ($, piejs, CodeMirror) {
     $.post(tarapi, function (msg) {
         if (msg.code != 1) throw Error('getPieInfoByPuidPnm failed:' + msg.text);
         //如果是author，显示savebtn
-        if (msg.data.power == piejs.usrPower.author) {
+        if (piejs.usrPower[msg.data.power] >= piejs.usrPower.author) {
             btngrp.saveBtn.show();
             btngrp.previewA.show();
+            btngrp.titleSpan.css('color', '#000');
         };
 
         //然后载入目标的jsapp文件，请求时强制七牛刷新

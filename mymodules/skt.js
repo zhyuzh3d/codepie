@@ -12,7 +12,7 @@ function startFn(skt) {
     //中间件处理
 
     //存储skt,分别rds存储map到uid和pid（两个hash），便于匹配
-    var sid = skt.id;
+    var sid = skt.conn.id;
     var ck = $cookie.parse(skt.request.headers.cookie);
 
     //提取skt存储的数据
@@ -40,7 +40,7 @@ function startFn(skt) {
     };
 
     //发送欢迎信息
-    skt.emit('checkin', __newMsg(0, 'Welcome to jscodepie skts!', {
+    skt.emit('checkin', __newMsg(1, 'Welcome to jscodepie skts!', {
         sid: sid,
         uid: uid,
         pid: pid,
@@ -55,7 +55,7 @@ var sktapis = {};
 
 /*转发smsg，两个skt之间通信
 要向一个skt发送信息，必须先拿到它的sktid才可以，参照下面的接口
-{from:sktid,tar:sktid,sn:1234222,key:'...',msg:{code:1,text:'..',data:{}}}
+{tarSid:sktid,tarApi:'...',sn:1234222,key:'...',msg:{code:1,text:'..',data:{}}}
 */
 sktapis.transSmsg = transSmsg;
 
@@ -64,25 +64,25 @@ function transSmsg(data) {
 
     //格式检查与获取数据
     if (!data) {
-        skt.emit('transSmsg', __newMsg(0, 'Data can not be undefined.', data));
+        skt.emit('transErr', __newMsg(0, 'Data can not be undefined.', data));
         return;
     };
 
-    var tarsid = data.tar;
+    var tarsid = data.tarSid;
     if (!tarsid) {
-        skt.emit('transSmsg', __newMsg(0, 'Target socket can not be undefined.', data));
+        skt.emit('transErr', __newMsg(0, 'Target socket can not be undefined.', data));
         return;
     };
 
-    var tarskt = _app.sktSvr.sockets.connected[tarsid];
+    var tarskt = _app.sktSvr.sockets.connected['/#' + tarsid];
     if (!tarskt) {
-        skt.emit('transSmsg', __newMsg(0, 'Target missing', data));
+        skt.emit('transErr', __newMsg(-1, 'Target missing', data));
         return;
     };
 
     //向目标转发消息,强力将from转化为对象，写入uid,pid,sid
     data.from = {
-        sid: skt.id,
+        sid: skt.conn.id,
         uid: skt.uid,
         pid: skt.pid,
     };
@@ -116,7 +116,6 @@ function getSktsByUid(data) {
             skts: skts,
         }));
     }).then(null, function (err) {
-        //getSktsByUidCo(skt, uid).then(null, function (err) {
         skt.emit('getSktsByUid', __newMsg(0, err.message, data));
     });
 };
@@ -130,7 +129,7 @@ function getSktsByUidCo(skt, uid) {
         var sktsol = [];
         for (var i = 0; i < skts.length; i++) {
             var sktid = skts[i];
-            if (_app.sktSvr.sockets.connected[sktid]) {
+            if (_app.sktSvr.sockets.connected['/#' + sktid]) {
                 sktsol.push(sktid);
             } else {
                 _rds.cli.zrem('_map:sktid:usr.id', sktid);
@@ -189,7 +188,7 @@ function getSktsByPidCo(skt, pid) {
         var sktsol = [];
         for (var i = 0; i < skts.length; i++) {
             var sktid = skts[i];
-            if (_app.sktSvr.sockets.connected[sktid]) {
+            if (_app.sktSvr.sockets.connected['/#' + sktid]) {
                 sktsol.push(sktid);
             } else {
                 _rds.cli.zrem('_map:sktid:pie.id', sktid);

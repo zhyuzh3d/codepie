@@ -219,7 +219,13 @@ _rotr.apis.getPieInfoByPuidPnm = function () {
         if (authid && !_cfg.regx.int.test(authid)) throw Error('Author ID format error.');
         if (!authid) authid = uid;
 
-        var res = yield getPieInfoCo(authid, name);
+        //找到pid
+        var piename = authid + '/' + name;
+        var pid = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.name:pie.id', piename);
+        if (!pid) throw Error('Can not find the pie id [' + pname + ']');
+
+        var res = yield getPieInfoByPidCo(pid);
+        res.power = (res.uid == uid) ? 'author' : 'usr';
         ctx.body = __newMsg(1, 'OK', res);
         return ctx;
     });
@@ -241,7 +247,7 @@ _rotr.apis.getPieInfoByPid = function () {
 
         var res = yield getPieInfoByPidCo(thepid);
         //加入权限写入
-        res.power= (res.uid == uid) ? 'author' : 'usr';
+        res.power = (res.uid == uid) ? 'author' : 'usr';
         ctx.body = __newMsg(1, 'OK', res);
         return ctx;
     });
