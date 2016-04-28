@@ -71,21 +71,23 @@ require(modarr, function ($, piejs, CodeMirror) {
                         tipdiv.show().html('upload ok!');
                         tipdiv.fadeOut(1000, function () {
                             //向所有从属端发送更新命令
-                            piejs.sktParty.forEach(function (one, i) {
-                                var dat = {
-                                    tarSid: one,
-                                    tarApi: '_runCmd',
-                                    data: {
-                                        cmd: 'location.reload()',
-                                    },
-                                    sn: Number(new Date()),
+                            for (var attr in piejs.sktFamily) {
+                                var sinfo = piejs.sktFamily[attr];
+                                if (sinfo.state == undefined || sinfo.state == 1) {
+                                    var dat = {
+                                        tarSid: sinfo.sid,
+                                        tarApi: '_runCmd',
+                                        data: {
+                                            cmd: 'location.reload()',
+                                        },
+                                        sn: Number(new Date()),
+                                    };
+                                    piejs.sktio.emit('transSmsg', dat);
+                                    console.log('sendcmd', dat);
                                 };
-                                piejs.sktio.emit('transSmsg', dat);
-                                console.log('sendcmd', dat);
-                            });
+                            };
                         });
                     });
-
                 } else {
                     alert('File path err:' + appurl);
                 };
@@ -98,9 +100,21 @@ require(modarr, function ($, piejs, CodeMirror) {
         grp.previewA = previewA;
         previewA.css('margin-right', '12px');
         previewA.hide();
-        //预览地址
-        var prevurl = appname + '?partySid=' + piejs.sktio.id + '&autoCmd=true';
-        previewA.attr('href', prevurl);
+
+
+        var pageInfo;
+        //获取自身pie信息，拼接预览地址
+        $.post('../api/getInfo', function (msg) {
+            if (msg.code == 1) {
+                pageInfo = msg.data;
+                var uid = pageInfo.uid;
+                var pid = pageInfo.pid;
+                var prevurl = appname + '?parentUid=' + uid + '&parentPid=' + pid + '&autoCmd=true';
+                previewA.attr('href', prevurl);
+            } else {
+                console.log('api/getInfo err:', msg.text);
+            };
+        });
 
         //app名称
         grp.titleSpan = $('<span style="color:#888"></span>').appendTo(grp);

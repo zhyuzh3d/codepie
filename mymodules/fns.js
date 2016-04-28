@@ -125,24 +125,24 @@ function __newMsg(code, text, data) {
     };
 };
 
-
-
-/*生成skt转发的信息格式
-每个客户端skt都有一个id， 信息总是从一个socket发送到另一个
-sn序号用于识别不同信息，默认为时间戳
-sn和key豆由app写入data里面，这里不做处理
-*/
+/*生成skt的msg，在msg基础上增加一个id,这个id来自前端,如果需要重新生成设置为0
+{0,1,'ok',data}*/
 global.__newSmsg = __newSmsg;
 
-function __newSmsg(fromSid, tarSid, data) {
-    var tm = Number(new Date());
+function __newSmsg(id, code, text, data) {
+    if (text.constructor == Array) {
+        text = text.join(' ');
+    };
+    if (!id) id = __uuid();
     return {
-        from: fromSid,
-        tar: tarSid,
+        id: id,
+        code: code,
+        text: text,
         data: data,
-        time: tm,
+        time: Number(new Date()),
     };
 };
+
 
 
 

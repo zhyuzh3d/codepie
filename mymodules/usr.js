@@ -318,7 +318,7 @@ _rotr.apis.loginByMail = function () {
 req:{}
 res:{id:23,name:'..',sex:'...',...}
 */
-_rotr.apis.getProfile = function () {
+_rotr.apis.getMyProfile = function () {
     var ctx = this;
     var co = $co(function* () {
         var uid = ctx.xdat.uid;

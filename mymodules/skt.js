@@ -1,4 +1,5 @@
 /*sktio转发机制
+基于sktPath转发，uid/pid
  */
 
 var _skt = {};
@@ -7,44 +8,62 @@ var _skt = {};
 _skt.start = startFn;
 
 function startFn(skt) {
-    //检查合法性
+    $co(function* () {
+        //检查合法性
 
-    //中间件处理
+        //中间件处理
 
-    //存储skt,分别rds存储map到uid和pid（两个hash），便于匹配
-    var sid = skt.conn.id;
-    var ck = $cookie.parse(skt.request.headers.cookie);
+        //存储skt,分别rds存储map到uid和pid（两个hash），便于匹配
+        var sid = skt.conn.id;
+        var ck = $cookie.parse(skt.request.headers.cookie);
 
-    //提取skt存储的数据
-    var uid = skt.uid = ck.uid;
-    var pid = skt.pid = ck.pid;
+        //提取skt存储的数据
+        var uid = skt.uid = ck.uid;
+        var pid = skt.pid = ck.pid;
 
-    if (!uid || !pid) {
-        //异常请求，直接返回错误并结束
-        skt.emit('checkin', __newMsg(0, 'Socket msg data err.'));
-        return;
-    };
-    _rds.cli.zadd('_map:sktid:usr.id', uid, sid);
-    _rds.cli.zadd('_map:sktid:pie.id', pid, sid);
+        if (!uid || !pid) {
+            //异常请求，直接返回错误并结束
+            skt.emit('checkin', __newMsg(0, 'Socket msg data err.'));
+            return;
+        };
+        _rds.cli.zadd('_map:skt.id:usr.id', uid, sid);
+        _rds.cli.zadd('_map:skt.id:pie.id', pid, sid);
+        _rds.cli.hset('_map:skt.path:skt.id', uid + '/' + pid, sid);
+        //console.log('>>add a sktid', sid, uid, pid);
 
-    //断开时删除rds数据库
-    skt.on('disconnect', function () {
-        _rds.cli.zrem('_map:sktid:usr.id', sid);
-        _rds.cli.zrem('_map:sktid:pie.id', sid);
+        //断开时删除rds数据库
+        skt.on('disconnect', function () {
+            clearSktRds(sid).then(null, __errhdlr);
+        });
+
+        //接口处理
+        for (var api in sktapis) {
+            skt.on(api, sktapis[api]);
+        };
+
+        //发送欢迎信息
+        skt.emit('checkin', __newMsg(1, 'Welcome to jscodepie skts!', {
+            sid: sid,
+            uid: uid,
+            pid: pid,
+        }));
+    }).then(null, __errhdlr);
+};
+
+/*清理断开的skt数据,如果没有uidpid那么自动读取*/
+function clearSktRds(sid, uid, pid) {
+    var co = $co(function* () {
+        if (!uid) uid = yield _ctnu([_rds.cli, 'zscore'], '_map:skt.id:usr.id', sid);
+        if (!pid) pid = yield _ctnu([_rds.cli, 'zscore'], '_map:skt.id:pie.id', sid);
+
+        var mu = _rds.cli.multi();
+        mu.hdel('_map:skt.path:skt.id', uid + '/' + pid);
+        mu.zrem('_map:skt.id:usr.id', sid);
+        mu.zrem('_map:skt.id:pie.id', sid);
+        mu.exec();
+        //console.log('>>del a sktid', sid, uid, pid);
     });
-
-
-    //接口处理
-    for (var api in sktapis) {
-        skt.on(api, sktapis[api]);
-    };
-
-    //发送欢迎信息
-    skt.emit('checkin', __newMsg(1, 'Welcome to jscodepie skts!', {
-        sid: sid,
-        uid: uid,
-        pid: pid,
-    }));
+    return co;
 };
 
 
@@ -93,37 +112,27 @@ function transSmsg(data) {
 {uid:32}
 {skts:[]}
  */
-sktapis.getSktsByUid = getSktsByUid;
+_rotr.apis.getSktsByUid = function () {
+    var ctx = this;
+    var co = $co(function* () {
+        //格式检查与获取数据
+        var tuid = ctx.query.uid || ctx.request.body.uid;
+        if (!tuid || !_cfg.regx.int.test(tuid)) throw Error('User id format err.');
 
-function getSktsByUid(data) {
-    var skt = this;
-    //格式检查与获取数据
-    if (!data) {
-        skt.emit('getSktsByUid', __newMsg(0, 'Data can not be undefined.', data));
-        return;
-    };
-
-    var uid = (data) ? data.uid : undefined;
-    if (!uid || !_cfg.regx.int.test(uid)) {
-        skt.emit('getSktsByUid', __newMsg(0, 'User id format err.', data));
-        return;
-    };
-
-    //读取数据库
-    $co(function* () {
-        var skts = yield getSktsByUidCo(skt, uid);
-        skt.emit('getSktsByUid', __newMsg(1, 'OK', {
-            skts: skts,
-        }));
-    }).then(null, function (err) {
-        skt.emit('getSktsByUid', __newMsg(0, err.message, data));
+        //读取数据
+        var skts = yield getSktsByUidCo(tuid);
+        ctx.body = __newMsg(1, 'OK', {
+            skts: skts
+        });
+        return ctx;
     });
+    return co;
 };
 
 /*获取uid对应的再现skts*/
-function getSktsByUidCo(skt, uid) {
+function getSktsByUidCo(uid) {
     var co = $co(function* () {
-        var skts = yield _ctnu([_rds.cli, 'zrangebyscore'], '_map:sktid:usr.id', uid, uid);
+        var skts = yield _ctnu([_rds.cli, 'zrangebyscore'], '_map:skt.id:usr.id', uid, uid);
 
         //去除已经断开链接的skts
         var sktsol = [];
@@ -132,7 +141,7 @@ function getSktsByUidCo(skt, uid) {
             if (_app.sktSvr.sockets.connected['/#' + sktid]) {
                 sktsol.push(sktid);
             } else {
-                _rds.cli.zrem('_map:sktid:usr.id', sktid);
+                yield clearSktRds(sktid);
             };
         };
         return sktsol;
@@ -144,45 +153,34 @@ function getSktsByUidCo(skt, uid) {
 {pid:4}
 {skts:[]}
  */
-sktapis.getSktsByPid = getSktsByPid;
+_rotr.apis.getSktsByPid = function () {
+    var ctx = this;
+    var co = $co(function* () {
+        //格式检查与获取数据
+        var pid = ctx.query.pid || ctx.request.body.pid;
+        if (!pid || !_cfg.regx.int.test(pid)) throw Error('App id format err.');
 
-function getSktsByPid(data) {
-    var skt = this;
-    //格式检查与获取数据
-    if (!data) {
-        skt.emit('getSktsByPid', __newMsg(0, 'Data can not be undefined.', data));
-        return;
-    };
-
-    var pid = (data) ? data.pid : undefined;
-    if (!pid || !_cfg.regx.int.test(pid)) {
-        skt.emit('getSktsByPid', __newMsg(0, 'App id format err.', data));
-        return;
-    };
-
-    $co(function* () {
         //检查是否管理员或者pie的author
         var authorid = yield _ctnu([_rds.cli, 'hget'], 'pie-' + pid, 'uid');
         if (!authorid) throw Error('Cant find the app.');
-        if (!skt.uid) throw Error('You have not checkin.');
-        if (skt.uid != authorid && skt.id != 1) throw Error('Permission denied.');
+        var uid = ctx.xdat.uid;
+        if (uid != authorid && uid != 1) throw Error('Permission denied.');
 
         //读取数据
-        var skts = yield getSktsByPidCo(skt, pid);
-        skt.emit('getSktsByPid', __newMsg(1, 'OK', {
-            skts: skts,
-        }));
-        return skts;
-    }).then(null, function (err) {
-        skt.emit('getSktsByPid', __newMsg(0, err.message, data));
+        var skts = yield getSktsByPidCo(pid);
+        ctx.body = __newMsg(1, 'OK', {
+            skts: skts
+        });
+        return ctx;
     });
+    return co;
 };
 
 /*获取pid对应的再现skts
  */
-function getSktsByPidCo(skt, pid) {
+function getSktsByPidCo(pid) {
     var co = $co(function* () {
-        var skts = yield _ctnu([_rds.cli, 'zrangebyscore'], '_map:sktid:pie.id', pid, pid);
+        var skts = yield _ctnu([_rds.cli, 'zrangebyscore'], '_map:skt.id:pie.id', pid, pid);
 
         //去除已经断开链接的skts
         var sktsol = [];
@@ -191,7 +189,7 @@ function getSktsByPidCo(skt, pid) {
             if (_app.sktSvr.sockets.connected['/#' + sktid]) {
                 sktsol.push(sktid);
             } else {
-                _rds.cli.zrem('_map:sktid:pie.id', sktid);
+                yield clearSktRds(sktid);
             };
         };
         return sktsol;
@@ -199,56 +197,128 @@ function getSktsByPidCo(skt, pid) {
     return co;
 };
 
+
+
 /*通过uid和pieid获取对应的多个skt
 {uid:1,pid:4}
 {skts:[]}
 */
-sktapis.getSktsByUidPid = getSktsByUidPid;
+_rotr.apis.getSktsByUidPid = function () {
+    var ctx = this;
+    var co = $co(function* () {
+        //格式检查与获取数据
+        var tpid = ctx.query.pid || ctx.request.body.pid;
+        if (!tpid || !_cfg.regx.int.test(tpid)) throw Error('App id format err.');
 
-function getSktsByUidPid(data) {
-    var skt = this;
-    //格式检查与获取数据
-    if (!data) {
-        skt.emit('getSktsByUidPid', __newMsg(0, 'Data can not be undefined.', data));
-        return;
-    };
-    var pid = (data) ? data.pid : undefined;
-    if (!pid || !_cfg.regx.int.test(pid)) {
-        skt.emit('getSktsByUidPid', __newMsg(0, 'App id format err.', data));
-        return;
-    };
-    var uid = (data) ? data.uid : undefined;
-    if (!uid || !_cfg.regx.int.test(uid)) {
-        skt.emit('getSktsByUidPid', __newMsg(0, 'User id format err.', data));
-        return;
-    };
+        var tuid = ctx.query.uid || ctx.request.body.uid;
+        if (!tuid || !_cfg.regx.int.test(tuid)) throw Error('Usr id format err.');
 
-    //先获取uid打开的所有skts，然后逐个检查每个skt对应的pid是否与pid相同
-    $co(function* () {
-        var uskts = yield getSktsByUidCo(skt, uid);
+        //返回数据
+        var okskts = yield getSktsByUidPidCo(tuid, tpid);
+        ctx.body = __newMsg(1, 'OK', {
+            skts: okskts
+        });
+        return ctx;
+    });
+    return co;
+};
+
+/*根据uid和pid获取交叉的多个sktid
+读取uid对应的所有sktid，逐个检查是否与pie匹配
+ */
+function getSktsByUidPidCo(uid, pid) {
+    var co = $co(function* () {
+        var uskts = yield getSktsByUidCo(uid);
         var mu = _rds.cli.multi();
         for (var i = 0; i < uskts.length; i++) {
             var sktnm = uskts[i];
-            mu.zscore('_map:sktid:pie.id', sktnm);
+            mu.zscore('_map:skt.id:pie.id', sktnm);
         };
         var res = yield _ctnu([mu, 'exec']);
         var okskts = [];
         for (var n = 0; n < res.length; n++) {
             if (res[n] == pid && n < uskts.length) {
-                okskts.push(uskts[n]);
+                if (_app.sktSvr.sockets.connected['/#' + uskts[n]]) {
+                    okskts.push(uskts[n]);
+                } else {
+                    yield clearSktRds(uskts[n]);
+                };
             };
         };
-        skt.emit('getSktsByUidPid', __newMsg(1, 'OK', {
-            skts: okskts,
-        }));
         return okskts;
-    }).then(null, function (err) {
-        skt.emit('getSktsByUidPid', __newMsg(0, err.message, data));
     });
+    return co;
 };
 
 
 
+
+/*通过uid和pieid获取对应的单个skt
+这是getSktsByUidPid的快捷版本，只获取最新的一个uid/pid对应的sktid
+{uid:1,pid:4}
+{sid:1,uid:23,pid:44}
+*/
+_rotr.apis.getSktByUidPid = function () {
+    var ctx = this;
+    var co = $co(function* () {
+        //格式检查与获取数据
+        var tpid = ctx.query.pid || ctx.request.body.pid;
+        if (!tpid || !_cfg.regx.int.test(tpid)) throw Error('App id format err.');
+
+        var tuid = ctx.query.uid || ctx.request.body.uid;
+        if (!tuid || !_cfg.regx.int.test(tuid)) throw Error('Usr id format err.');
+
+        //返回数据
+        var sktid = yield getSktByUidPidCo(tuid, tpid);
+        if (!sktid) throw Error('No data.');
+        ctx.body = __newMsg(1, 'OK', {
+            sid: sktid,
+            uid: tuid,
+            pid: tpid,
+        });
+        return ctx;
+    });
+    return co;
+};
+
+/*根据uid和pid获取最新的单个skt
+ */
+function getSktByUidPidCo(uid, pid) {
+    var co = $co(function* () {
+        var sktid = yield _ctnu([_rds.cli, 'hget'], '_map:skt.path:skt.id', uid + '/' + pid);
+        if (_app.sktSvr.sockets.connected['/#' + sktid]) {
+            return sktid;
+        } else {
+            yield clearSktRds(sktid);
+            return undefined;
+        };
+    });
+    return co;
+};
+
+/*直接获取自己的sktinfo
+{}
+{sid:1,uid:22,pid:22}
+*/
+_rotr.apis.getSktInfo = function () {
+    var ctx = this;
+    var co = $co(function* () {
+        var dt = {
+            uid: ctx.cookies.get('uid'),
+            pid: ctx.cookies.get('pid'),
+            puid: ctx.cookies.get('puid'),
+            pname: ctx.cookies.get('pname'),
+            purl: ctx.cookies.get('purl'),
+        };
+        dt.sid = yield getSktByUidPidCo(dt.uid, dt.pid);
+        ctx.body = __newMsg(1, 'OK', dt);
+        return ctx;
+    });
+    return co;
+};
+
+
+//去除重复的skt??
 
 
 
