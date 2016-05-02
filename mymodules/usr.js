@@ -55,7 +55,7 @@ _usr.getPowerByHttpCC = getPowerByHttpCC;
 function getPowerByHttpCC() {
     var ctx = this;
     var co = $co(function* () {
-        ctx.xdat.upower = 0; //???
+        ctx.ginfo.upower = 0;
     });
     return co;
 };
@@ -68,7 +68,7 @@ function getUidByHttpCC() {
     var ctx = this;
     var co = $co(function* () {
         //根据ukey读取uid
-        var ukey = ctx.xdat.ukey;
+        var ukey = ctx.ginfo.ukey;
         if (!ukey) return;
 
         var uid = yield _ctnu([_rds.cli, 'zscore'], '_map:usr.ukey:usr.id', ukey);
@@ -77,10 +77,13 @@ function getUidByHttpCC() {
             ctx.cookies.set('ukey', undefined);
             return 0;
         };
-        ctx.xdat.uid = uid;
+        ctx.ginfo.uid = uid;
     });
     return co;
 };
+
+
+
 
 
 /*注册验证码的邮件文字内容*/
@@ -94,7 +97,7 @@ res:null
 _rotr.apis.sendRegCodeToMail = function () {
     var ctx = this;
     var co = $co(function* () {
-        var uid = ctx.xdat.uid;
+        var uid = ctx.ginfo.uid;
         var mail = ctx.query.mail || ctx.request.body.mail;
         if (!mail || !_cfg.regx.mail.test(mail)) throw Error('Mail format error.');
         var resend = ctx.query.resend || ctx.request.body.resend;
@@ -114,7 +117,7 @@ _rotr.apis.sendRegCodeToMail = function () {
         //发送一个验证码，并且把这个验证码写入到数据库regCode:mail:code(hash)只读，一天过期，用完删除
         var mu = _rds.cli.multi();
         mu.hset(rkey, 'regCode', regcode);
-        mu.expire(rkey, 24 * 3600 * 1000);
+        mu.expire(rkey, 24 * 3600);
         var rdsres = yield _ctnu([mu, 'exec']);
 
         //发送的内容
@@ -122,7 +125,7 @@ _rotr.apis.sendRegCodeToMail = function () {
         var res = yield _fns.sendMail(mail, 'The register code from jscodepie.com', cont);
         ctx.body = res;
 
-        ctx.xdat.sendRegCodeToMail = res;
+        ctx.ginfo.sendRegCodeToMail = res;
         return ctx;
     });
     return co;
@@ -138,7 +141,7 @@ res:{};
 _rotr.apis.bindMail = function () {
     var ctx = this;
     var co = $co(function* () {
-        var uid = ctx.xdat.uid;
+        var uid = ctx.ginfo.uid;
 
         var mail = ctx.query.mail || ctx.request.body.mail;
         if (!mail || !_cfg.regx.mail.test(mail)) throw Error('Mail format err.')
@@ -164,7 +167,7 @@ _rotr.apis.bindMail = function () {
         var res = yield _ctnu([mu, 'exec']);
 
         ctx.body = __newMsg(1, 'OK');
-        ctx.xdat.bindMail = res;
+        ctx.ginfo.bindMail = res;
 
         return ctx;
     });
@@ -185,7 +188,7 @@ res:{};
 _rotr.apis.changePw = function () {
     var ctx = this;
     var co = $co(function* () {
-        var uid = ctx.xdat.uid;
+        var uid = ctx.ginfo.uid;
 
         var mail = ctx.query.mail || ctx.request.body.mail;
         if (!mail || !_cfg.regx.mail.test(mail)) throw Error('Mail format err.')
@@ -223,7 +226,7 @@ _rotr.apis.changePw = function () {
         var res = yield _ctnu([mu, 'exec']);
 
         ctx.body = __newMsg(1, 'OK');
-        ctx.xdat.changePw = res;
+        ctx.ginfo.changePw = res;
 
         return ctx;
     });
@@ -242,7 +245,7 @@ var mailResetPwHtml = $fs.readFileSync('mymodules/src/resetPwMail.html', 'utf-8'
 _rotr.apis.sendResetPwToMail = function () {
     var ctx = this;
     var co = $co(function* () {
-        var uid = ctx.xdat.uid;
+        var uid = ctx.ginfo.uid;
         var mail = ctx.query.mail || ctx.request.body.mail;
         if (!mail || !_cfg.regx.mail.test(mail)) throw Error('Mail format err.');
 
@@ -257,7 +260,7 @@ _rotr.apis.sendResetPwToMail = function () {
         var tmpkey = '_tmp:resetPw:' + mail;
         var mu = _rds.cli.multi();
         mu.set(tmpkey, epw);
-        mu.expire(tmpkey, 24 * 3600 * 1000);
+        mu.expire(tmpkey, 24 * 3600);
         mu.hset(usrkey, 'resetPwKey', tmpkey);
         var res = yield _ctnu([mu, 'exec']);
 
@@ -266,7 +269,7 @@ _rotr.apis.sendResetPwToMail = function () {
         var res = yield _fns.sendMail(mail, 'The reset password from jscodepie.com', cont);
 
         ctx.body = __newMsg(1, 'OK', res);
-        ctx.xdat.sendResetPwToMail = res;
+        ctx.ginfo.sendResetPwToMail = res;
 
         return ctx;
     });
@@ -283,7 +286,7 @@ res:{id:33,name:'..',...}
 _rotr.apis.loginByMail = function () {
     var ctx = this;
     var co = $co(function* () {
-        var uid = ctx.xdat.uid;
+        var uid = ctx.ginfo.uid;
         var mail = ctx.query.mail || ctx.request.body.mail;
         if (!mail || !_cfg.regx.mail.test(mail)) throw Error('Mail format err.');
         var pw = ctx.query.pw || ctx.request.body.pw;
@@ -306,7 +309,7 @@ _rotr.apis.loginByMail = function () {
         //把ukey写入cookie,改变uid
         ctx.cookies.set('ukey', usr.ukey);
         ctx.body = __newMsg(1, 'OK', res);
-        ctx.xdat.loginByMail = res;
+        ctx.ginfo.loginByMail = res;
 
         return ctx;
     });
@@ -321,7 +324,7 @@ res:{id:23,name:'..',sex:'...',...}
 _rotr.apis.getMyProfile = function () {
     var ctx = this;
     var co = $co(function* () {
-        var uid = ctx.xdat.uid;
+        var uid = ctx.ginfo.uid;
         var usrkey = 'usr-' + uid;
 
         //读取全部信息并筛选
@@ -331,7 +334,7 @@ _rotr.apis.getMyProfile = function () {
         //把ukey写入cookie,改变uid
         ctx.body = __newMsg(1, 'OK', res);
 
-        ctx.xdat.getProfile = res;
+        ctx.ginfo.getMyProfile = res;
         return ctx;
     });
     return co;
@@ -358,7 +361,7 @@ res:{}
 _rotr.apis.setProfile = function () {
     var ctx = this;
     var co = $co(function* () {
-        var uid = ctx.xdat.uid;
+        var uid = ctx.ginfo.uid;
         var usrkey = 'usr-' + uid;
 
         var nick = ctx.query.nick || ctx.request.body.nick;
@@ -375,7 +378,7 @@ _rotr.apis.setProfile = function () {
         //把ukey写入cookie,改变uid
         ctx.body = __newMsg(1, 'OK');
 
-        ctx.xdat.setProfile = res;
+        ctx.ginfo.setProfile = res;
         return ctx;
     });
     return co;

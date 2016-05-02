@@ -31,7 +31,7 @@ _init.init = function () {
             var tmpkey = '_tmp:resetPw:' + mail;
             var mu = _rds.cli.multi();
             mu.set(tmpkey, epw);
-            mu.expire(tmpkey, 24 * 3600 * 1000);
+            mu.expire(tmpkey, 24 * 3600);
             mu.hset('usr-1', 'resetPwKey', tmpkey);
             var rstres = yield _ctnu([mu, 'exec']);
 

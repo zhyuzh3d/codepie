@@ -48,26 +48,15 @@ define(['jquery', 'piejs', 'jform', 'qiniu', 'md5'], function ($, piejs, jform, 
     var grpGetSktInfo = function () {
         var grp = $('<div id="grpGetSktInfo" style="margin:16px"></div>').appendTo(bd);
         grp.append($('<hr>'));
-        grp.append($('<h3>获取当前页skt面信息[../api/getSktInfo]</h3>'));
+        grp.append($('<h3>Skt链接后的函数（显示sktinfo)[piejs.sktio.afterCheckinFnArr]</h3>'));
 
-        var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
-        fm.attr('action', '../api/getSktInfo');
-        var sendbtn = $('<button style="padding:8px 16px">点击刷新</button>').appendTo(grp);
-
-        $('<br><label>RES:</label><br>').appendTo(grp);
+        $('<label>RES:</label><br>').appendTo(grp);
         var resdiv = $('<div>...</div>').appendTo(grp);
         resdiv.css('word-break', 'break-all');
 
-        sendbtn.click(function (e) {
-            fm.ajaxSubmit({
-                type: 'POST',
-                success: function (res) {
-                    console.log('getSktInfo', res);
-                    resdiv.html(JSON.stringify(res));
-                },
-            });
+        piejs.sktio.afterCheckinFnArr.push(function () {
+            resdiv.html('piejs.sktio.sktInfo:' + JSON.stringify(piejs.sktio.sktInfo));
         });
-        sendbtn.click();
 
         return grp;
     }();
@@ -889,7 +878,7 @@ define(['jquery', 'piejs', 'jform', 'qiniu', 'md5'], function ($, piejs, jform, 
     //生成左侧列表
     bd.children().each(function (i, obj) {
         var jo = $(obj);
-        jo.css('padding-right','32px');
+        jo.css('padding-right', '32px');
         var grp = jo.attr('id');
         var div = $('<div style="line-height:20px"></div>').appendTo(ls);
         if (grp.substr(0, 3) == '---') {
@@ -899,9 +888,10 @@ define(['jquery', 'piejs', 'jform', 'qiniu', 'md5'], function ($, piejs, jform, 
         var idx = $('<a style="white-space:pre" href="#' + grp + '">' + grp.substr(3) + '</a>');
         idx.appendTo(div);
     });
+    console.log('API total count:', bd.children().length);
 
 
     //底部空间
     bd.append($('<div style="margin:16px 0 120px 12px"><hr><br>Create by jscodepie</div>'))
-    //end
+        //end
 });

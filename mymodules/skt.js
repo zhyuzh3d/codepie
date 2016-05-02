@@ -18,18 +18,32 @@ function startFn(skt) {
         var ck = $cookie.parse(skt.request.headers.cookie);
 
         //提取skt存储的数据
-        var uid = skt.uid = ck.uid;
-        var pid = skt.pid = ck.pid;
+        var ukey = skt.ukey = ck.ukey;
+        var ginfo = _pie.getPinfoByUrl(skt.request.headers.referer);
+        var pname = ginfo.pname;
+        var puid = ginfo.puid;
+        if (!pname || !puid) throw Error('Pie app missing.');
 
-        if (!uid || !pid) {
-            //异常请求，直接返回错误并结束
-            skt.emit('checkin', __newMsg(0, 'Socket msg data err.'));
-            return;
-        };
+        //从数据库读取uid和pid
+        var mu = _rds.cli.multi();
+        mu.zscore('_map:usr.ukey:usr.id', ukey);
+        mu.zscore('_map:pie.name:pie.id', pname);
+        var resarr = yield _ctnu([mu, 'exec']);
+        var uid = resarr[0];
+        if (!uid) throw Error('Can not get usr id.');
+        var pid = resarr[1];
+        if (!pid) throw Error('Can not get pie id.');
+
+        //记录到skt以备使用，每个skt都有这三个id
+        skt.sid = sid;
+        skt.uid = uid;
+        skt.pid = pid;
+
+        //写入数据库
         _rds.cli.zadd('_map:skt.id:usr.id', uid, sid);
         _rds.cli.zadd('_map:skt.id:pie.id', pid, sid);
         _rds.cli.hset('_map:skt.path:skt.id', uid + '/' + pid, sid);
-        //console.log('>>add a sktid', sid, uid, pid);
+        //console.log('>>add a sktid', sid, uid, pid, pname);
 
         //断开时删除rds数据库
         skt.on('disconnect', function () {
@@ -42,12 +56,14 @@ function startFn(skt) {
         };
 
         //发送欢迎信息
-        skt.emit('checkin', __newMsg(1, 'Welcome to jscodepie skts!', {
+        skt.emit('_checkin', __newMsg(1, 'Welcome to jscodepie skts!', {
             sid: sid,
             uid: uid,
             pid: pid,
         }));
-    }).then(null, __errhdlr);
+    }).then(null, function (err) {
+        skt.emit('_checkin', __newMsg(0, err));
+    });
 };
 
 /*清理断开的skt数据,如果没有uidpid那么自动读取*/
@@ -67,6 +83,7 @@ function clearSktRds(sid, uid, pid) {
 };
 
 
+
 /*所有skt接口类型,格式function(skt,smsg),返回一个function(data)函数;
  */
 var sktapis = {};
@@ -74,7 +91,7 @@ var sktapis = {};
 
 /*转发smsg，两个skt之间通信
 要向一个skt发送信息，必须先拿到它的sktid才可以，参照下面的接口
-{tarSid:sktid,tarApi:'...',sn:1234222,key:'...',msg:{code:1,text:'..',data:{}}}
+{tarSid:sktid,tarApi:'...',time:1234222,id:'...',msg:{code:1,text:'..',data:{}}}
 */
 sktapis.transSmsg = transSmsg;
 
@@ -101,7 +118,7 @@ function transSmsg(data) {
 
     //向目标转发消息,强力将from转化为对象，写入uid,pid,sid
     data.from = {
-        sid: skt.conn.id,
+        sid: skt.sid,
         uid: skt.uid,
         pid: skt.pid,
     };
@@ -137,11 +154,16 @@ function getSktsByUidCo(uid) {
         //去除已经断开链接的skts
         var sktsol = [];
         for (var i = 0; i < skts.length; i++) {
-            var sktid = skts[i];
-            if (_app.sktSvr.sockets.connected['/#' + sktid]) {
-                sktsol.push(sktid);
+            var skt = _app.sktSvr.sockets.connected['/#' + skts[i]];
+            if (skt) {
+                var sktinfo = {
+                    sid: skt.sid,
+                    uid: skt.uid,
+                    pid: skt.pid,
+                };
+                sktsol.push(sktinfo);
             } else {
-                yield clearSktRds(sktid);
+                yield clearSktRds(skts[i]);
             };
         };
         return sktsol;
@@ -163,7 +185,7 @@ _rotr.apis.getSktsByPid = function () {
         //检查是否管理员或者pie的author
         var authorid = yield _ctnu([_rds.cli, 'hget'], 'pie-' + pid, 'uid');
         if (!authorid) throw Error('Cant find the app.');
-        var uid = ctx.xdat.uid;
+        var uid = ctx.ginfo.uid;
         if (uid != authorid && uid != 1) throw Error('Permission denied.');
 
         //读取数据
@@ -186,8 +208,14 @@ function getSktsByPidCo(pid) {
         var sktsol = [];
         for (var i = 0; i < skts.length; i++) {
             var sktid = skts[i];
-            if (_app.sktSvr.sockets.connected['/#' + sktid]) {
-                sktsol.push(sktid);
+            var skt = _app.sktSvr.sockets.connected['/#' + sktid];
+            if (skt) {
+                var sktinfo = {
+                    sid: skt.sid,
+                    uid: skt.uid,
+                    pid: skt.pid,
+                };
+                sktsol.push(sktinfo);
             } else {
                 yield clearSktRds(sktid);
             };
@@ -231,15 +259,20 @@ function getSktsByUidPidCo(uid, pid) {
         var uskts = yield getSktsByUidCo(uid);
         var mu = _rds.cli.multi();
         for (var i = 0; i < uskts.length; i++) {
-            var sktnm = uskts[i];
-            mu.zscore('_map:skt.id:pie.id', sktnm);
+            mu.zscore('_map:skt.id:pie.id', uskts[i].sid);
         };
         var res = yield _ctnu([mu, 'exec']);
         var okskts = [];
         for (var n = 0; n < res.length; n++) {
             if (res[n] == pid && n < uskts.length) {
-                if (_app.sktSvr.sockets.connected['/#' + uskts[n]]) {
-                    okskts.push(uskts[n]);
+                var skt = _app.sktSvr.sockets.connected['/#' + uskts[n].sid];
+                if (skt) {
+                    var sktinfo = {
+                        sid: skt.sid,
+                        uid: skt.uid,
+                        pid: skt.pid,
+                    };
+                    okskts.push(sktinfo);
                 } else {
                     yield clearSktRds(uskts[n]);
                 };
@@ -286,8 +319,14 @@ _rotr.apis.getSktByUidPid = function () {
 function getSktByUidPidCo(uid, pid) {
     var co = $co(function* () {
         var sktid = yield _ctnu([_rds.cli, 'hget'], '_map:skt.path:skt.id', uid + '/' + pid);
-        if (_app.sktSvr.sockets.connected['/#' + sktid]) {
-            return sktid;
+        var skt = _app.sktSvr.sockets.connected['/#' + sktid];
+        if (skt) {
+            var sktinfo = {
+                sid: skt.sid,
+                uid: skt.uid,
+                pid: skt.pid,
+            }
+            return sktinfo;
         } else {
             yield clearSktRds(sktid);
             return undefined;
@@ -296,29 +335,9 @@ function getSktByUidPidCo(uid, pid) {
     return co;
 };
 
-/*直接获取自己的sktinfo
-{}
-{sid:1,uid:22,pid:22}
-*/
-_rotr.apis.getSktInfo = function () {
-    var ctx = this;
-    var co = $co(function* () {
-        var dt = {
-            uid: ctx.cookies.get('uid'),
-            pid: ctx.cookies.get('pid'),
-            puid: ctx.cookies.get('puid'),
-            pname: ctx.cookies.get('pname'),
-            purl: ctx.cookies.get('purl'),
-        };
-        dt.sid = yield getSktByUidPidCo(dt.uid, dt.pid);
-        ctx.body = __newMsg(1, 'OK', dt);
-        return ctx;
-    });
-    return co;
-};
 
 
-//去除重复的skt??
+
 
 
 

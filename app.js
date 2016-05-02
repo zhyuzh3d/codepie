@@ -50,6 +50,7 @@ var sktSvr = _app.sktSvr = $sktio(httpSvr);
 //正式服务器80监听，本地测试8000
 _app.hostName = 'www.jscodepie.com';
 _app.hostPort = 80;
+_app.hostUrl = 'http://www.jscodepie.com';
 httpSvr.listen(_app.hostPort);
 
 httpSvr.on('error', function (err) {
@@ -57,6 +58,7 @@ httpSvr.on('error', function (err) {
     case 'EACCES':
         _app.hostName = 'localhost';
         _app.hostPort = 8088;
+        _app.hostUrl = 'http://localhost:' + _app.hostPort;
         httpSvr.listen(_app.hostPort);
         console.log('App started on localhost server.');
         break;
@@ -98,8 +100,8 @@ koaSvr.use(_rotr.routes());
 /*http请求中间件示例
 koaSvr.use(test);
 function* test(next) {
-    console.log('>After router', this.xdat);
-    this.xdat.test='will be trans to next midware';
+    console.log('>After router', this.ginfo);
+    this.ginfo.test='will be trans to next midware';
     yield next;
 }
 */

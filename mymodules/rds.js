@@ -29,6 +29,29 @@ $co(function* () {
 
 
 
+/*测试性能
+setTimeout(function () {
+    $co(function* () {
+        var st = Number(new Date());
+        console.log('start', st);
+
+        var n = 0;
+        for (var i = 0; i < 10000; i++) {
+            var mu=_rds.cli.multi();
+            mu.select(n);
+            mu.hget('test','val');
+            mu.hgetall('usr-1');
+            yield _ctnu([mu, 'exec']);
+            //yield _ctnu([_rds.cli, 'hget'], 'test', 'val');
+        };
+        var ed = Number(new Date());
+        console.log('start', ed - st);
+    }).then(null, __errhdlr);
+}, 3000);
+*/
+
+
+
 
 
 

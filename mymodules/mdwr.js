@@ -10,7 +10,7 @@ var _mdwr = function* (next) {
     __infohdlr(this.method + ':' + this.path);
 
     //添加用以传递数据的对象
-    this.xdat = {};
+    this.ginfo = {};
     yield next;
 };
 

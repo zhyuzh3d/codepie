@@ -33,7 +33,7 @@ require(modarr, function ($, piejs, CodeMirror) {
 
     //获取当前用户基本信息
     var usrProfile;
-    $.post('../api/getProfile', function (msg) {
+    $.post('../api/getMyProfile', function (msg) {
         if (msg && msg.code == 1) {
             usrProfile = msg.data;
         };
@@ -80,10 +80,10 @@ require(modarr, function ($, piejs, CodeMirror) {
                                         data: {
                                             cmd: 'location.reload()',
                                         },
-                                        sn: Number(new Date()),
+                                        id: piejs.uniqueId(),
+                                        time: Number(new Date()),
                                     };
                                     piejs.sktio.emit('transSmsg', dat);
-                                    console.log('sendcmd', dat);
                                 };
                             };
                         });
@@ -101,19 +101,10 @@ require(modarr, function ($, piejs, CodeMirror) {
         previewA.css('margin-right', '12px');
         previewA.hide();
 
-
-        var pageInfo;
-        //获取自身pie信息，拼接预览地址
-        $.post('../api/getInfo', function (msg) {
-            if (msg.code == 1) {
-                pageInfo = msg.data;
-                var uid = pageInfo.uid;
-                var pid = pageInfo.pid;
-                var prevurl = appname + '?parentUid=' + uid + '&parentPid=' + pid + '&autoCmd=true';
-                previewA.attr('href', prevurl);
-            } else {
-                console.log('api/getInfo err:', msg.text);
-            };
+        piejs.sktio.afterCheckinFnArr.push(function () {
+            var sinfo = piejs.sktio.sktInfo;
+            var prevurl = appname + '?parentSid=' + sinfo.sid + '&autoCmd=true';
+            previewA.attr('href', prevurl);
         });
 
         //app名称

@@ -32,21 +32,21 @@ _rotr.apis.getUploadToken = function () {
     var ctx = this;
 
     var co = $co(function* () {
-        var uid = ctx.xdat.uid;
+        var uid = ctx.ginfo.uid;
         var fpath = ctx.query.fpath || ctx.request.body.fpath;
         if (!fpath || fpath == '') throw Error('File cannot be undefeind!');
 
         //根据uid授权路径的token
-        var key = ctx.xdat.uid + '/' + fpath;
+        var key = ctx.ginfo.uid + '/' + fpath;
         var token = _qn.genUploadToken(key);
         var respdat = {
-            uid: ctx.xdat.uid,
+            uid: ctx.ginfo.uid,
             key: key,
             domain: _qn.cfg.BucketDomain,
             uptoken: token,
         };
         ctx.body = __newMsg(1, 'OK', respdat);
-        ctx.xdat.uploadToken = token;
+        ctx.ginfo.uploadToken = token;
         return ctx;
     });
     return co;
@@ -75,7 +75,7 @@ _rotr.apis.getFileList = function () {
     var ctx = this;
 
     var co = $co(function* () {
-        var uid = ctx.xdat.uid;
+        var uid = ctx.ginfo.uid;
 
         var prefix = uid + '/';
         var path = ctx.query.path || ctx.request.body.path;
@@ -142,7 +142,7 @@ res:{url:'bucketdomain/uid/file}
 _rotr.apis.uploadData = function () {
     var ctx = this;
     var co = $co(function* () {
-        var uid = ctx.xdat.uid;
+        var uid = ctx.ginfo.uid;
 
         var data = ctx.request.body.data || ctx.query.data;
         var file = ctx.request.body.file || ctx.query.file;
@@ -153,7 +153,7 @@ _rotr.apis.uploadData = function () {
         var res = yield _qn.uploadDataCo(data, filekey);
         if (!res || !res.key) throw Error('Upload data failed,cannot get url');
 
-        ctx.xdat.uploadData = res;
+        ctx.ginfo.uploadData = res;
         ctx.body = __newMsg(1, 'ok', {
             url: _qn.cfg.BucketDomain + res.key,
         });
@@ -194,7 +194,7 @@ res:{}
 _rotr.apis.deleteFile = function () {
     var ctx = this;
     var co = $co(function* () {
-        var uid = ctx.xdat.uid;
+        var uid = ctx.ginfo.uid;
 
         var fkey = ctx.request.body.key || ctx.query.key;
         if (fkey.indexOf(uid + '/') != 0) throw Error('You can delete only your own file.')
@@ -204,7 +204,7 @@ _rotr.apis.deleteFile = function () {
 
         ctx.body = __newMsg(1, 'ok');
 
-        ctx.xdat.deleteFile = res;
+        ctx.ginfo.deleteFile = res;
         return ctx;
     });
     return co;

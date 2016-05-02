@@ -16,7 +16,7 @@ res:{id:100,url:'...'};
 _rotr.apis.createPie = function () {
     var ctx = this;
     var co = $co(function* () {
-        var uid = ctx.xdat.uid;
+        var uid = ctx.ginfo.uid;
         var piename = ctx.request.body.name || ctx.query.name;
         if (!piename || piename == '') throw Error('Pie name cannot be undefined.');
         var res = yield createPieCo(uid, piename);
@@ -102,10 +102,10 @@ res:{count:12,pies:[{id:13,name:'..',url:'...'}]}
 _rotr.apis.getPieList = function () {
     var ctx = this;
     var co = $co(function* () {
-        var uid = ctx.xdat.uid;
+        var uid = ctx.ginfo.uid;
         var res = yield getPieListCo(uid);
         ctx.body = __newMsg(1, 'OK', res);
-        ctx.xdat.getPieList = res;
+        ctx.ginfo.getPieList = res;
         return ctx;
     });
     return co;
@@ -159,7 +159,7 @@ res:{}
 _rotr.apis.setPieStateByName = function () {
     var ctx = this;
     var co = $co(function* () {
-        var uid = ctx.xdat.uid;
+        var uid = ctx.ginfo.uid;
 
         var name = ctx.query.name || ctx.request.body.name;
         if (!name || !_cfg.regx.pieName.test(name)) throw Error('Pie name format error.');
@@ -210,7 +210,7 @@ res:{id:12,name:'...',uid:12,url:'...',power:'...'}
 _rotr.apis.getPieInfoByPuidPnm = function () {
     var ctx = this;
     var co = $co(function* () {
-        var uid = ctx.xdat.uid;
+        var uid = ctx.ginfo.uid;
 
         var name = ctx.query.name || ctx.request.body.name;
         if (!name || !_cfg.regx.pieName.test(name)) throw Error('Pie name format error.');
@@ -240,7 +240,7 @@ res:{id:12,name:'...',uid:12,url:'...',power:'...'}
 _rotr.apis.getPieInfoByPid = function () {
     var ctx = this;
     var co = $co(function* () {
-        var uid = ctx.xdat.uid;
+        var uid = ctx.ginfo.uid;
 
         var thepid = ctx.query.id || ctx.request.body.id;
         if (!thepid || !_cfg.regx.int.test(thepid)) throw Error('Pie id format error.');
@@ -317,8 +317,29 @@ function getPieInfoCo(uid, pname) {
 };
 
 
+/*通过req的地址栏获取pname和puid*/
+_pie.getPinfoByUrl = getPinfoByUrl;
 
-
+function getPinfoByUrl(url) {
+    var url = url.split("?")[0];
+    var hsturl = _app.hostUrl + '/pie/';
+    var pname = url.substr(hsturl.length);
+    if (pname == '') pname = undefined;
+    var puid;
+    if (pname) {
+        var slashpos = pname.indexOf('/');
+        if (slashpos == -1) {
+            puid = 1;
+            pname = puid + '/' + pname;
+        } else {
+            puid = Number(pname.substr(0, slashpos));
+        };
+    };
+    return {
+        pname: pname,
+        puid: puid,
+    };
+};
 
 
 

@@ -167,10 +167,13 @@ _cfg.xcfgCo = function () {
     return co;
 };
 
+
 /*常用错误信息*/
 var __errMsgs = global.__errMsgs = {
     usrUnkown: __newMsg(__errCode.NOUSR, 'You are not signed in.'),
+    pieUnkown: __newMsg(__errCode.NOPIE, 'Pie app missing.'),
 };
+
 
 
 //重要函数------------------------------------

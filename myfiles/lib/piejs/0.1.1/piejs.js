@@ -33,6 +33,10 @@ define(['jquery', 'soketio'], function ($, soketio) {
         return null;
     };
 
+    //从页面dom获取gkey
+    piejs.pageKey = $('codepie').attr('gkey');
+
+
     //生成非重复的字符串序号,时间戳加随机数
     piejs.uniqueId = uniqueId;
 
@@ -82,7 +86,9 @@ define(['jquery', 'soketio'], function ($, soketio) {
     //以下skt相关------
     //启动socketio,获取自身sid后执行afterCheckin队列的函数
     var sktio = piejs.sktio = soketio.connect(window.location.host);
-    sktio.afterCheckin = [];
+    sktio.afterCheckinFnArr = [];
+    sktio.sktInfo = [];
+
 
     /*设置skt回调函数;将fn放入sktCallBackFns［smsmg.id］,以备sktCallBack调用
     fn的格式function(recvSmsg,sendSmsg){return false};返回true阻止默认处理
@@ -92,31 +98,36 @@ define(['jquery', 'soketio'], function ($, soketio) {
     piejs.sktSmsgs = {};
 
     function addSktCb(smsg, cbfn) {
-        if (!smsg.id) {
+        if (!smsg || !smsg.id) {
             console.log('piejs.setSktCb failed:id can not be undefined.', smsg);
             return;
         };
-        piejs.sktCallBackFns[id] = cbfn;
-        piejs.sktSmsgs[id] = smsg;
+        if (!cbfn || cbfn.constructor != Function) {
+            console.log('piejs.setSktCb failed:callback function can not be undefined.', smsg);
+            return;
+        };
+        piejs.sktCallBackFns[smsg.id] = cbfn;
+        piejs.sktSmsgs[smsg.id] = smsg;
     };
 
     /*清理skt回调*/
     piejs.delSktCb = delSktCb;
 
     function delSktCb(id) {
+        if (!id) return;
         delete piejs.sktCallBackFns[id];
         delete piejs.sktSmsgs[id];
     };
 
     /*检查是否有sktcbfn可以执行;用来放在skt.on中最先执行检查
-    cbfn返回false那么skt.on监听就直接return；否则继续往下执行默认的命令
+    cbfn返回true那么skt.on监听就直接return；否则继续往下执行默认的命令
     */
     piejs.doSktCb = doSktCb;
 
     function doSktCb(smsg) {
-        if (!smsg.id) return true;
+        if (!smsg || !smsg.id) return false;
         var fn = piejs.sktCallBackFns[smsg.id];
-        if (!fn || fn.constructor != Function) return true;
+        if (!fn || fn.constructor != Function) return false;
         try {
             res = fn(smsg, piejs.sktSmsgs[smsg.id]);
             return res;
@@ -128,13 +139,13 @@ define(['jquery', 'soketio'], function ($, soketio) {
 
 
     //首次链接返回信息处理
-    sktio.on('checkin', sktCheckin);
+    sktio.on('_checkin', sktCheckin);
 
     function sktCheckin(msg) {
         console.log('Connect to jscodepie skts:', msg);
         if (msg.data.sid) {
-            sktio.sktinfo = msg.data;
-            var fns = sktio.afterCheckin;
+            sktio.sktInfo = msg.data;
+            var fns = sktio.afterCheckinFnArr;
             if (fns && fns.constructor == Array) {
                 for (var n = 0; n < fns.length; n++) {
                     var fn = fns[n];
@@ -148,7 +159,7 @@ define(['jquery', 'soketio'], function ($, soketio) {
                 };
             };
         } else {
-            console.log('Skt checkin failed:', msg);
+            console.log('Skt _checkin failed:', msg);
         };
     };
 
@@ -208,55 +219,68 @@ define(['jquery', 'soketio'], function ($, soketio) {
     piejs.sktApis._joinFamily = skt_joinFamily;
 
     function skt_joinFamily(msg) {
+        if (piejs.doSktCb(msg.data) == true) return;
         var frominfo = (msg.data) ? msg.data.from : undefined;
-        var sid = (frominfo) ? frominfo.sid : undefined;
-        if (!sid) throw Error('Socket id undefined.');
+        var fsid = (frominfo) ? frominfo.sid : undefined;
+        if (!fsid) throw Error('Socket id undefined.');
 
         //将从属端sktid放入队列
-        piejs.sktFamily[sid] = msg.data.from;
+        piejs.sktFamily[fsid] = msg.data.from;
+
+        //返回欢迎信息
+        var dt = {
+            tarSid: frominfo.sid,
+            tarApi: '_joinFamily',
+            time: Number(new Date()),
+            id: msg.data.id,
+            data: __newMsg(1, 'Welcome to join skt family:' + sktio.sktInfo.sid),
+        };
+        sktio.emit('transSmsg', dt);
     };
 
 
     //从属端family相关接口设置
     var autoJoinSktFamily = function () {
-        //预览页如果地址栏带有parentUid和parentPie，那么立即获取psid并发送sktid到这个地址
-        var tuid = piejs.getUrlParam('parentUid');
-        var tpid = piejs.getUrlParam('parentPid');
-        if (!tuid || !tuid) return;
-
-        joinParentSktFamily(tuid, tpid);
+        //预览页如果地址栏带有parentSid，那么立即发送sktid到这个地址
+        var tsid = piejs.getUrlParam('parentSid');
+        if (!tsid) return;
+        joinParentSktFamily(tsid);
 
         //启动等待父层skt命令的监听
         var autoCmd = piejs.getUrlParam('autoCmd');
         if (autoCmd == 'true') {
             piejs.sktApis._runCmd = function (msg) {
+                if (piejs.doSktCb(msg.data) == true) return;
                 var frmsid = msg.data.from.sid;
-                if (!piejs.parentSktInfo) throw ('Parent skt can not be undefined.');
-                if (frmsid != piejs.parentSktInfo.sid) throw Error('Illegal cmd source.');
+                if (!tsid) throw ('Parent skt can not be undefined.');
+                if (frmsid != tsid) throw Error('Illegal cmd source.');
                 eval(msg.data.data.cmd);
             };
         };
     }();
 
     //获得父层skt并发送skt信息加入父层的family
-    function joinParentSktFamily(uid, pid) {
-        $.post('../api/getSktByUidPid', {
-            uid: uid,
-            pid: pid,
-        }, function (msg) {
-            if (msg.code == 1) {
-                piejs.parentSktInfo = msg.data;
-                var dt = {
-                    tarSid: msg.data.sid,
-                    tarApi: '_joinFamily',
-                    sn: Number(new Date()),
-                };
-                sktio.emit('transSmsg', dt);
-            } else {
-                console.log('skt/getSktByUidPid err:', data)
-            };
+    function joinParentSktFamily(sid) {
+        if (!sid) return;
+        var dt = {
+            tarSid: sid,
+            tarApi: '_joinFamily',
+            time: Number(new Date()),
+            id: piejs.uniqueId(),
+        };
+        sktio.emit('transSmsg', dt);
+        piejs.addSktCb(dt, function (res, dat) {
+            console.log(res.data.text);
+            piejs.delSktCb(res.id);
+            return true;
         });
     };
+
+
+
+
+
+
 
 
 

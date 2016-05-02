@@ -11,8 +11,9 @@ var __errCode = global.__errCode = {
     EXISTS: 3222, //已经重复存在导致的错误
     NOTFOUND: 4312, //找不到目标
     FNERR: 9877, //程序异常，未知错误
-    NOUSR: 5422, //程序异常，未知错误
-    APIERR: 8788, //程序异常，未知错误
+    NOUSR: 5422, //找不到uid，来自未登录用户
+    APIERR: 8788, //API接口异常，未知错误
+    NOPIE: 9888, //pie路径丢失，来自不明路径
 };
 
 
@@ -63,6 +64,7 @@ _cfg.time = {
     mini: 60 * 1000,
     sec: 1000,
 };
+
 
 
 
