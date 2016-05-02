@@ -191,34 +191,6 @@ define(['jquery', 'piejs', 'jform', 'qiniu', 'md5'], function ($, piejs, jform, 
     var grp = $('<div id="---USER" style="margin:16px"></div>').appendTo(bd);
 
 
-    /*获取当前页面信息*/
-    var grpGetPageInfo = function () {
-        var grp = $('<div id="grpGetPageInfo" style="margin:16px"></div>').appendTo(bd);
-        grp.append($('<hr>'));
-        grp.append($('<h3>获取当前页面信息[../api/getPageInfo]</h3>'));
-
-        var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
-        fm.attr('action', '../api/getPageInfo');
-        var sendbtn = $('<button style="padding:8px 16px">点击刷新</button>').appendTo(grp);
-
-        $('<br><label>RES:</label><br>').appendTo(grp);
-        var resdiv = $('<div>...</div>').appendTo(grp);
-        resdiv.css('word-break', 'break-all');
-
-        sendbtn.click(function (e) {
-            fm.ajaxSubmit({
-                type: 'POST',
-                success: function (res) {
-                    console.log('getPageInfo', res);
-                    resdiv.html(JSON.stringify(res));
-                },
-            });
-        });
-        sendbtn.click();
-
-        return grp;
-    }();
-
     /*获取其他人的基础信息，使用mail*/
     var grpGetUsrInfoByMail = function () {
         var grp = $('<div id="grpGetUsrInfoByMail" style="margin:16px"></div>').appendTo(bd);

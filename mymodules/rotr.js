@@ -179,28 +179,6 @@ function* procMypies(next) {
     };
 };
 
-/*获取基本页面信息的接口，这些信息实际都存在cookie里面（不返回ukey);
-同时作为范例
-{}
-{uid:1,pid:12,puid:11,pname:'..',purl:'...'}
-*/
-_rotr.apis.getPageInfo = function (data) {
-    var ctx = this;
-    var co = $co(function* () {
-        var dt = {
-            uid: ctx.cookies.get('uid'),
-            pid: ctx.cookies.get('pid'),
-            puid: ctx.cookies.get('puid'),
-            pname: ctx.cookies.get('pname'),
-            purl: ctx.cookies.get('purl'),
-            gid: ctx.cookies.get('gid'),
-        };
-        ctx.body = __newMsg(1, 'OK', dt);
-        return ctx;
-    });
-    return co;
-};
-
 
 
 

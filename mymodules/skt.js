@@ -302,13 +302,9 @@ _rotr.apis.getSktByUidPid = function () {
         if (!tuid || !_cfg.regx.int.test(tuid)) throw Error('Usr id format err.');
 
         //返回数据
-        var sktid = yield getSktByUidPidCo(tuid, tpid);
-        if (!sktid) throw Error('No data.');
-        ctx.body = __newMsg(1, 'OK', {
-            sid: sktid,
-            uid: tuid,
-            pid: tpid,
-        });
+        var sktinfo = yield getSktByUidPidCo(tuid, tpid);
+        if (!sktinfo.sid) throw Error('No data.');
+        ctx.body = __newMsg(1, 'OK', sktinfo);
         return ctx;
     });
     return co;

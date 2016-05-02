@@ -242,9 +242,26 @@ define(['jquery', 'soketio'], function ($, soketio) {
     //从属端family相关接口设置
     var autoJoinSktFamily = function () {
         //预览页如果地址栏带有parentSid，那么立即发送sktid到这个地址
+        //预览页如果地址栏带有parentUid和parentPid，那么立即获取skt并发送sktid到这个地址
         var tsid = piejs.getUrlParam('parentSid');
-        if (!tsid) return;
-        joinParentSktFamily(tsid);
+        var tuid = piejs.getUrlParam('parentUid');
+        var tpid = piejs.getUrlParam('parentPid');
+        if (!tsid && (!tuid || !tpid)) return;
+        if (tsid) {
+            joinParentSktFamilyBySid(tsid);
+        } else if (tuid && tpid) {
+            $.post('http://' + window.location.host + '/api/getSktByUidPid', {
+                uid: tuid,
+                pid: tpid
+            }, function (data) {
+                if (data.code == 1) {
+                    tsid = data.data.sid;
+                    joinParentSktFamilyBySid(tsid);
+                } else {
+                    console.log('>Join skt family failed:', data.text);
+                };
+            });
+        };
 
         //启动等待父层skt命令的监听
         var autoCmd = piejs.getUrlParam('autoCmd');
@@ -260,7 +277,7 @@ define(['jquery', 'soketio'], function ($, soketio) {
     }();
 
     //获得父层skt并发送skt信息加入父层的family
-    function joinParentSktFamily(sid) {
+    function joinParentSktFamilyBySid(sid) {
         if (!sid) return;
         var dt = {
             tarSid: sid,
