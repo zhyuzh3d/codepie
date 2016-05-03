@@ -27,7 +27,7 @@ var modarr = ['jquery',
 
 
 require(modarr, function ($, piejs, CodeMirror) {
-    $('body').css('margin','0');
+    $('body').css('margin', '0');
     var bd = $('#pieBox');
     var tmp = bd.children('#_pieTemp');
     tmp.remove();
@@ -51,13 +51,13 @@ require(modarr, function ($, piejs, CodeMirror) {
         var grp = $('<div id="btngrp"></div>').appendTo(bd);
         grp.css({
             'position': 'fixed',
-            'top':'0',
-            'padding':'8px',
-            'background':'#EEE',
-            'height':'24px',
-            'width':'100%',
-            'z-index':'99',
-            'border-bottom':'1px solid #CCC'
+            'top': '0',
+            'padding': '8px',
+            'background': '#EEE',
+            'height': '24px',
+            'width': '100%',
+            'z-index': '99',
+            'border-bottom': '1px solid #CCC'
         })
 
         //保存按钮
@@ -77,23 +77,26 @@ require(modarr, function ($, piejs, CodeMirror) {
                         data: editorGrp.editor.doc.getValue(),
                         file: file,
                     };
-                    editorGrp.tipdiv.show().html('uploading...')
+                    grp.tipdiv.show().html('uploading...')
                     $.post("../api/uploadData", data, function (res) {
-                        editorGrp.tipdiv.show().html('upload ok!');
-                        editorGrp.tipdiv.fadeOut(1000, function () {
+                        grp.tipdiv.show().html('upload ok!');
+                        grp.tipdiv.fadeOut(1000, function () {
+                            console.log('>>>prepare skt', piejs.sktFamily.length);
                             //向所有从属端发送更新命令
-                            for (var attr in piejs.sktFamily) {
-                                var sinfo = piejs.sktFamily[attr];
-                                if (sinfo.state == undefined || sinfo.state == 1) {
+                            for (var n = 0; n < piejs.sktFamily.length; n++) {
+                                var sinfo = piejs.sktFactory[piejs.sktFamily[n]];
+                                console.log('>>>prepare skt', sinfo);
+                                if (sinfo && sinfo.state == 1) {
                                     var dat = {
-                                        tarSid: sinfo.sid,
-                                        tarApi: '_runCmd',
+                                        tar: sinfo,
+                                        api: '_runCmd',
                                         data: {
                                             cmd: 'location.reload()',
                                         },
                                         id: piejs.uniqueId(),
                                         time: Number(new Date()),
                                     };
+                                    console.log('>>>send cmd', dat);
                                     piejs.sktio.emit('transSmsg', dat);
                                 };
                             };
@@ -126,10 +129,20 @@ require(modarr, function ($, piejs, CodeMirror) {
 
         grp.apptitle.html('[ ' + appname + ' ]');
 
-
+        //错误提示行
+        var tipdiv = grp.tipdiv = $('<div style="color:#D00;font-size:14px">..up;loading.</div>').appendTo(grp);
+        tipdiv.css({
+            'background': '#94EE77',
+            'padding': '4px 8px',
+            'color': '#164',
+            'margin-left': '-8px',
+            'margin-top': '12px'
+        })
+        tipdiv.hide();
 
         return grp;
     }();
+
 
 
 
@@ -137,18 +150,11 @@ require(modarr, function ($, piejs, CodeMirror) {
     var editorGrp = function () {
         var grp = $('<div id="editorGrp"></div>').appendTo(bd);
         grp.css({
-            'margin-top':'40px',
-            'z-index':0,
+            'margin-top': '40px',
+            'z-index': 0,
         });
 
-        //错误提示行
-        var tipdiv = grp.tipdiv = $('<div style="color:#D00;font-size:14px">..up;loading.</div>').appendTo(grp);
-        tipdiv.css({
-            'background':'#94EE77',
-            'padding':'4px 8px',
-            'color':'#164'
-        })
-        tipdiv.hide();
+
 
         //编辑器,alt键hint
         var codeta = grp.ta = $('<textarea id="code">...loading...</textarea>').appendTo(grp);
@@ -188,8 +194,8 @@ require(modarr, function ($, piejs, CodeMirror) {
             $.get(urlts, function (dat) {
                 editorGrp.editor.doc.setValue(dat);
             }, 'text').error(function (err) {
-                editorGrp.tipdiv.show();
-                editorGrp.tipdiv.html('Load failed:' + JSON.stringify(err));
+                btngrp.tipdiv.show();
+                btngrp.tipdiv.html('Load failed:' + JSON.stringify(err));
             });
         });
         return grp;

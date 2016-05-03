@@ -91,38 +91,51 @@ var sktapis = {};
 
 /*转发smsg，两个skt之间通信
 要向一个skt发送信息，必须先拿到它的sktid才可以，参照下面的接口
-{tarSid:sktid,tarApi:'...',time:1234222,id:'...',msg:{code:1,text:'..',data:{}}}
+{tar:{sid:'xxx',uid:12,pid:125},api:'...',time:1234222,id:'...',msg:{code:1,text:'..',data:{}}}
 */
 sktapis.transSmsg = transSmsg;
 
 function transSmsg(data) {
     var skt = this;
 
-    //格式检查与获取数据
-    if (!data) {
-        skt.emit('transErr', __newMsg(0, 'Data can not be undefined.', data));
-        return;
-    };
+    $co(function* () {
+        //格式检查与获取数据
+        if (!data) throw Error('Data can not be undefined:');
 
-    var tarsid = data.tarSid;
-    if (!tarsid) {
-        skt.emit('transErr', __newMsg(0, 'Target socket can not be undefined.', data));
-        return;
-    };
+        //如果可以根据sid找到skt，那么直接使用，否则根据uid和pid获取skt
+        var sinfo = data.tar;
+        if (!sinfo.sid && (!sinfo.uid || !sinfo.pid)) throw Error('Target info format err.')
 
-    var tarskt = _app.sktSvr.sockets.connected['/#' + tarsid];
-    if (!tarskt) {
-        skt.emit('transErr', __newMsg(-1, 'Target missing', data));
-        return;
-    };
+        var tarskt = _app.sktSvr.sockets.connected['/#' + sinfo.sid];
+        if (!tarskt) {
+            //尝试用uid和pid获取skt
+            sinfo = yield getSktByUidPidCo(sinfo.uid, sinfo.pid);
+            tarskt = _app.sktSvr.sockets.connected['/#' + sinfo.sid];
+        };
 
-    //向目标转发消息,强力将from转化为对象，写入uid,pid,sid
-    data.from = {
-        sid: skt.sid,
-        uid: skt.uid,
-        pid: skt.pid,
-    };
-    tarskt.emit('transSmsg', __newMsg(1, 'OK', data));
+        //仍然找不到skt（已经彻底离线），那么发送离线错误
+        if (!tarskt) {
+            skt.emit('setSktOffline', __newMsg(1, 'OK', data));
+            throw Error('Target missing');
+        };
+
+        //如果获取的sid已经改变（从属端已经短线重连），那么发送信息告知客户端更新sktinfo
+        if (tarskt.sid != sinfo.sid) {
+            data.tar.sid = tarskt.sid;
+            skt.emit('updateSktInfo', __newMsg(1, 'OK', data));
+        };
+
+        //向目标转发消息,强力将from转化为对象，写入uid,pid,sid
+        data.from = {
+            sid: skt.sid,
+            uid: skt.uid,
+            pid: skt.pid,
+        };
+        tarskt.emit('transSmsg', __newMsg(1, 'OK', data));
+        return data;
+    }).then(null, function (err) {
+        skt.emit('transErr', __newMsg(0, err, data));
+    })
 };
 
 /*通过uid获取对应的多个skt

@@ -165,11 +165,10 @@ define(['jquery', 'soketio'], function ($, soketio) {
 
     //本地服务监听接口分发路由
     piejs.sktApis = {};
-    piejs.sktFamily = {};
     sktio.on('transSmsg', sktTransSmsg);
 
     function sktTransSmsg(data) {
-        var api = (data.data) ? data.data.tarApi : undefined;
+        var api = (data.data) ? data.data.api : undefined;
         if (api) {
             var handler = piejs.sktApis[api];
             if (handler && handler.constructor == Function) {
@@ -216,27 +215,74 @@ define(['jquery', 'soketio'], function ($, soketio) {
     };
 
     //添加管理所有从属端的接口
+    piejs.sktFactory = {}; //factory[sktpath]=sktinfo
+    piejs.sktFamily = []; //数组[sktpath,sktpath];
     piejs.sktApis._joinFamily = skt_joinFamily;
 
     function skt_joinFamily(msg) {
         if (piejs.doSktCb(msg.data) == true) return;
         var frominfo = (msg.data) ? msg.data.from : undefined;
-        var fsid = (frominfo) ? frominfo.sid : undefined;
-        if (!fsid) throw Error('Socket id undefined.');
+        if (!frominfo) throw Error('Socket can not be undefined.');
 
-        //将从属端sktid放入队列
-        piejs.sktFamily[fsid] = msg.data.from;
+        //将从属端sktid放入队列,设定为在线state1
+        var spath = frominfo.uid + '/' + frominfo.pid;
+        frominfo.state = 1;
+        piejs.sktFactory[spath] = frominfo;
+        if (piejs.sktFamily.indexOf(spath) == -1) {
+            piejs.sktFamily.push(spath);
+        };
 
         //返回欢迎信息
         var dt = {
-            tarSid: frominfo.sid,
-            tarApi: '_joinFamily',
+            tar: frominfo,
+            api: '_joinFamily',
             time: Number(new Date()),
             id: msg.data.id,
             data: __newMsg(1, 'Welcome to join skt family:' + sktio.sktInfo.sid),
         };
         sktio.emit('transSmsg', dt);
     };
+
+    //更新factory的skt的sid的接口
+    piejs.sktio.on('updateSktInfo', updateSktInfo);
+
+    function updateSktInfo(msg) {
+        if (piejs.doSktCb(msg.data) == true) return;
+        if (data.code == 1) {
+            var tar = msg.data.tar;
+            var spath = tar.uid + '/' + tar.pid;
+            var sinfo = piejs.sktFactory[spath];
+            tar.state = 1;
+            if (sinfo) {
+                sinfo.sid = tar.sid;
+                sinfo.uid = tar.uid;
+                sinfo.pid = tar.pid;
+                sinfo.state = tar.state;
+            } else {
+                piejs.sktFactory[spath] = tar;
+            };
+        } else {
+            console.log('updateSktInfo failed:', msg.text);
+        };
+    };
+
+    //设置factory的skt的state为离线的接口
+    piejs.sktio.on('setSktOffline', setSktOffline);
+
+    function setSktOffline(msg) {
+        if (piejs.doSktCb(msg.data) == true) return;
+        if (data.code == 1) {
+            var tar = msg.data.tar;
+            var spath = tar.uid + '/' + tar.pid;
+            var sinfo = piejs.sktFactory[spath];
+            if (sinfo) {
+                sinfo.state = -1;
+            };
+        } else {
+            console.log('setSktOffline failed:', msg.text);
+        };
+    };
+
 
 
     //从属端family相关接口设置
@@ -246,45 +292,39 @@ define(['jquery', 'soketio'], function ($, soketio) {
         var tsid = piejs.getUrlParam('parentSid');
         var tuid = piejs.getUrlParam('parentUid');
         var tpid = piejs.getUrlParam('parentPid');
+
         if (!tsid && (!tuid || !tpid)) return;
-        if (tsid) {
-            joinParentSktFamilyBySid(tsid);
-        } else if (tuid && tpid) {
-            $.post('http://' + window.location.host + '/api/getSktByUidPid', {
-                uid: tuid,
-                pid: tpid
-            }, function (data) {
-                if (data.code == 1) {
-                    tsid = data.data.sid;
-                    joinParentSktFamilyBySid(tsid);
-                } else {
-                    console.log('>Join skt family failed:', data.text);
-                };
-            });
+        var sinfo = {
+            sid: tsid,
+            uid: tuid,
+            pid: tpid,
         };
+
+        joinParentSktFamilyBySinfo(sinfo);
 
         //启动等待父层skt命令的监听
         var autoCmd = piejs.getUrlParam('autoCmd');
         if (autoCmd == 'true') {
             piejs.sktApis._runCmd = function (msg) {
                 if (piejs.doSktCb(msg.data) == true) return;
-                var frmsid = msg.data.from.sid;
-                if (!tsid) throw ('Parent skt can not be undefined.');
-                if (frmsid != tsid) throw Error('Illegal cmd source.');
+                var frm = msg.data.from;
+                if (!tsid && (!tuid || !tpid)) throw ('Parent skt can not be undefined.');
+                if (frm.sid != tsid && (frm.uid != tuid && frm.pid != tpid)) throw Error('Illegal cmd source.');
                 eval(msg.data.data.cmd);
             };
         };
     }();
 
     //获得父层skt并发送skt信息加入父层的family
-    function joinParentSktFamilyBySid(sid) {
-        if (!sid) return;
+    function joinParentSktFamilyBySinfo(sinfo) {
+        if (!sinfo) return;
         var dt = {
-            tarSid: sid,
-            tarApi: '_joinFamily',
+            tar: sinfo,
+            api: '_joinFamily',
             time: Number(new Date()),
             id: piejs.uniqueId(),
         };
+        console.log('>>>send _joinFamily', dt);
         sktio.emit('transSmsg', dt);
         piejs.addSktCb(dt, function (res, dat) {
             console.log(res.data.text);
