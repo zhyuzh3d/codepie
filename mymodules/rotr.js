@@ -137,18 +137,15 @@ function* procApi(next) {
         puid: puid,
     };
 
+    //匹配到路由函数,路由函数异常自动返回错误；自动记录apiRes和apiName
     var apifn = _rotr.apis[apinm];
+    ctx.apiName = apinm;
 
     if (apifn && apifn.constructor == Function) {
-        try {
-            yield apifn.call(ctx, next).then(null, function (err) {
-                //api异常捕获
-                ctx.body = __newMsg(__errCode.APIERR, apinm + ' process failed:' + err.message);
-            });
-        } catch (err) {
+        yield apifn.call(ctx, next).then(null, function (err) {
+            ctx.body = __newMsg(__errCode.APIERR, 'API:' + apinm + ' process failed:' + err.message);
             __errhdlr(err);
-            ctx.body = __newMsg(__errCode.APIERR, 'Api process failed:' + apinm)
-        };
+        });
     } else {
         ctx.body = __newMsg(__errCode.NOTFOUND, 'Api not found:' + apinm);
     };
@@ -156,7 +153,7 @@ function* procApi(next) {
 };
 
 
-//手工控制mypies文件夹路由，暂不缓存
+//手工控制mypies文件夹的文件路由，暂不缓存
 _rotr.get('api', '/mypies/:piename', procMypies);
 var notfoundhtml = $fs.readFileSync('mymodules/src/404.html', 'utf-8');
 var mypiefilearr = ['welcome', 'start', 'editor', 'sample', 'qiniu', 'wpie'];

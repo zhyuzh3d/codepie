@@ -151,9 +151,12 @@ _rotr.apis.getSktsByUid = function () {
 
         //读取数据
         var skts = yield getSktsByUidCo(tuid);
-        ctx.body = __newMsg(1, 'OK', {
+        var res = {
             skts: skts
-        });
+        };
+        ctx.body = __newMsg(1, 'OK', res);
+
+        ctx.apiRes = res;
         return ctx;
     });
     return co;
@@ -203,9 +206,12 @@ _rotr.apis.getSktsByPid = function () {
 
         //读取数据
         var skts = yield getSktsByPidCo(pid);
-        ctx.body = __newMsg(1, 'OK', {
+        var res = {
             skts: skts
-        });
+        };
+        ctx.body = __newMsg(1, 'OK', res);
+
+        ctx.apiRes = res;
         return ctx;
     });
     return co;
@@ -256,9 +262,12 @@ _rotr.apis.getSktsByUidPid = function () {
 
         //返回数据
         var okskts = yield getSktsByUidPidCo(tuid, tpid);
-        ctx.body = __newMsg(1, 'OK', {
+        var res = {
             skts: okskts
-        });
+        };
+        ctx.body = __newMsg(1, 'OK', res);
+
+        ctx.apiRes = res;
         return ctx;
     });
     return co;
@@ -318,6 +327,8 @@ _rotr.apis.getSktByUidPid = function () {
         var sktinfo = yield getSktByUidPidCo(tuid, tpid);
         if (!sktinfo.sid) throw Error('No data.');
         ctx.body = __newMsg(1, 'OK', sktinfo);
+
+        ctx.apiRes = sktinfo;
         return ctx;
     });
     return co;

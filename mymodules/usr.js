@@ -11,7 +11,7 @@ if (!tmpNameArr) throw Error('_usr.js get tmpusrarr failed!');
 
 
 _usr.createUsrCo = createUsrCo;
-/*创建一个usr键hash;格式usr-100;
+/*函数：创建一个usr键hash;格式usr-100;
 自动增加_cls（zset）键的usr分数，如果没有自动补充
 自动增加_map:usr.ukey:usr.id(hash)键映射
 返回co可链式.then(okfn,errfn)
@@ -47,11 +47,12 @@ function createUsrCo(uid) {
 };
 
 
-_usr.getPowerByHttpCC = getPowerByHttpCC;
-/*根据http头获取用户相对于当前pie的权限
+/*函数：根据http头获取用户相对于当前pie的权限
 需要有xdat.uid和xdat.pie;
 添加到xdat.upower
 */
+_usr.getPowerByHttpCC = getPowerByHttpCC;
+
 function getPowerByHttpCC() {
     var ctx = this;
     var co = $co(function* () {
@@ -60,10 +61,11 @@ function getPowerByHttpCC() {
     return co;
 };
 
-_usr.getUidByHttpCC = getUidByHttpCC;
-/*Co,Call:通过ukey获取uid,需要call调用
+/*函数：Co,Call:通过ukey获取uid,需要call调用
 添加到xdat.uid
 */
+_usr.getUidByHttpCC = getUidByHttpCC;
+
 function getUidByHttpCC() {
     var ctx = this;
     var co = $co(function* () {
@@ -125,7 +127,7 @@ _rotr.apis.sendRegCodeToMail = function () {
         var res = yield _fns.sendMail(mail, 'The register code from jscodepie.com', cont);
         ctx.body = res;
 
-        ctx.ginfo.sendRegCodeToMail = res;
+        ctx.apiRes = res;
         return ctx;
     });
     return co;
@@ -167,8 +169,8 @@ _rotr.apis.bindMail = function () {
         var res = yield _ctnu([mu, 'exec']);
 
         ctx.body = __newMsg(1, 'OK');
-        ctx.ginfo.bindMail = res;
 
+        ctx.apiRes = res;
         return ctx;
     });
     return co;
@@ -226,8 +228,8 @@ _rotr.apis.changePw = function () {
         var res = yield _ctnu([mu, 'exec']);
 
         ctx.body = __newMsg(1, 'OK');
-        ctx.ginfo.changePw = res;
 
+        ctx.apiRes = res;
         return ctx;
     });
     return co;
@@ -269,8 +271,8 @@ _rotr.apis.sendResetPwToMail = function () {
         var res = yield _fns.sendMail(mail, 'The reset password from jscodepie.com', cont);
 
         ctx.body = __newMsg(1, 'OK', res);
-        ctx.ginfo.sendResetPwToMail = res;
 
+        ctx.apiRes = res;
         return ctx;
     });
     return co;
@@ -309,8 +311,8 @@ _rotr.apis.loginByMail = function () {
         //把ukey写入cookie,改变uid
         ctx.cookies.set('ukey', usr.ukey);
         ctx.body = __newMsg(1, 'OK', res);
-        ctx.ginfo.loginByMail = res;
 
+        ctx.apiRes = res;
         return ctx;
     });
     return co;
@@ -334,13 +336,13 @@ _rotr.apis.getMyProfile = function () {
         //把ukey写入cookie,改变uid
         ctx.body = __newMsg(1, 'OK', res);
 
-        ctx.ginfo.getMyProfile = res;
+        ctx.apiRes = res;
         return ctx;
     });
     return co;
 };
 
-/*过滤用户信息方法
+/*函数：过滤用户信息方法
 把hgetall得到的数据过滤剩下可以返回前端的数据
 白名单制*/
 function filterUsrProfile(usr, attrarr) {
@@ -378,7 +380,7 @@ _rotr.apis.setProfile = function () {
         //把ukey写入cookie,改变uid
         ctx.body = __newMsg(1, 'OK');
 
-        ctx.ginfo.setProfile = res;
+        ctx.apiRes = res;
         return ctx;
     });
     return co;
@@ -402,6 +404,8 @@ _rotr.apis.getUsrInfoByMail = function () {
         //获取usr信息
         var theusr = yield getUsrInfoByUidCo(theuid);
         ctx.body = __newMsg(1, 'OK', theusr);
+
+        ctx.apiRes = theusr;
         return ctx;
     });
     return co;
@@ -420,6 +424,8 @@ _rotr.apis.getUsrInfoByUid = function () {
         //获取usr信息
         var theusr = yield getUsrInfoByUidCo(theuid);
         ctx.body = __newMsg(1, 'OK', theusr);
+
+        ctx.apiRes = theusr;
         return ctx;
     });
     return co;

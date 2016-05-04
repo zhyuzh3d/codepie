@@ -14,7 +14,6 @@ _init.init = function () {
             //增加usr自增id到1000
             yield _ctnu([_rds.cli, 'zadd'], '_cls', 1000, 'usr')
 
-
             //绑定到邮箱admin@jscodepie（无需验证）
             var xcfg = yield _cfg.xcfgCo();
             var rstpw = Math.random().toString(36).substr(2).substr(0, 8);
@@ -34,7 +33,6 @@ _init.init = function () {
             mu.expire(tmpkey, 24 * 3600);
             mu.hset('usr-1', 'resetPwKey', tmpkey);
             var rstres = yield _ctnu([mu, 'exec']);
-
 
             //发送邮件
             var mailResetPwHtml = $fs.readFileSync('mymodules/src/resetPwMail.html', 'utf-8');

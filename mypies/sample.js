@@ -494,6 +494,38 @@ define(['jquery', 'piejs', 'jform', 'qiniu', 'md5'], function ($, piejs, jform, 
 
     var grp = $('<div id="---PIE" style="margin:16px"></div>').appendTo(bd);
 
+    /*检查一个pie是否已经存在，使用短名*/
+    var grPisPieExists = function () {
+        var grp = $('<div id="grPisPieExists" style="margin:16px"></div>').appendTo(bd);
+        grp.append($('<hr>'));
+        grp.append($('<h3>检查一个pie是否已经存在，使用短名[../api/isPieExists]</h3>'));
+
+        var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
+        fm.attr('action', '../api/isPieExists');
+        $('<label>pname</label>').appendTo(fm);
+        var pidipt = $('<input name="pname">').val('sample').appendTo(fm);
+        $('<label>puid</label>').appendTo(fm);
+        var pidipt = $('<input name="puid">').val('1').appendTo(fm);
+        var sendbtn = $('<button style="padding:8px 16px">点击获取</button>').appendTo(grp);
+
+        $('<br><label>RES:</label><br>').appendTo(grp);
+        var resdiv = $('<div>...</div>').appendTo(grp);
+        resdiv.css('word-break', 'break-all');
+
+        sendbtn.click(function (e) {
+            fm.ajaxSubmit({
+                type: 'POST',
+                success: function (res) {
+                    console.log('isPieExists', res);
+                    resdiv.html(JSON.stringify(res));
+                },
+            });
+        });
+
+        return grp;
+    }();
+
+
     /*获取其他人Pie的基础信息，使用pid*/
     var grpGetPieInfoByPid = function () {
         var grp = $('<div id="grpGetPieInfoByPid" style="margin:16px"></div>').appendTo(bd);
@@ -560,7 +592,7 @@ define(['jquery', 'piejs', 'jform', 'qiniu', 'md5'], function ($, piejs, jform, 
     /*获取我的pieapp列表的接口*/
     var grpGetPieList = function () {
         var grp1 = $('<div id="grpGetPieList" style="margin:16px"></div>').appendTo(bd);
-        grp1.append($('<h3>创建pieApp的接口[../api/getPieList]</h3>'));
+        grp1.append($('<h3>获取我的pie列表[../api/getPieList]</h3>'));
         var grp = $('<div id="grpSetPieStateByName" style="margin:16px"></div>').appendTo(bd);
         grp.append($('<hr>'));
         grp.append($('<h3>设置pie的state接口[.../api/setPieStateByName]</h3>'));

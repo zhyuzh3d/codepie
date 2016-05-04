@@ -21,7 +21,7 @@ _rotr.apis.createPie = function () {
         if (!piename || piename == '') throw Error('Pie name cannot be undefined.');
         var res = yield createPieCo(uid, piename);
         ctx.body = __newMsg(1, 'OK', res);
-        ctx.createPie = res;
+        ctx.apiRes = res;
         return ctx;
     });
     return co;
@@ -33,20 +33,21 @@ _pie.createPieCo = createPieCo;
 
 function createPieCo(uid, name) {
     var co = $co(function* () {
-        //检查用户是否已经存在同名的pieapp,先获取pieSetKey(如果没有自动创建)，然后检查是否存在
         var usrkey = 'usr-' + uid;
+
+        //检查是否有重名
+        var ppath = uid + '/' + name;
+        var exist = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.name:pie.id', ppath);
+        if (exist) throw Error('The pie name [' + name + '] already  exists.')
+
+        //获取usr.piesetkey，如果没有就创建
         var setkey = yield _ctnu([_rds.cli, 'hget'], usrkey, 'pieSetKey');
-        if (setkey) {
-            var exist = yield _ctnu([_rds.cli, 'sismember'], setkey, name);
-            if (exist) {
-                throw Error('The pie name [' + name + '] already  exists.')
-            };
-        } else {
-            //如果usr还没有pieSetKey那么自动创建并加入usr
+        if (!setkey) {
             var setid = yield _ctnu([_rds.cli, 'zincrby'], '_cls', 1, 'set');
             setkey = 'set-' + setid;
             yield _ctnu([_rds.cli, 'hset'], usrkey, 'pieSetKey', setkey);
         };
+
 
         //获取自增pieid
         var pieid = yield _ctnu([_rds.cli, 'zincrby'], '_cls', 1, 'pie');
@@ -70,7 +71,8 @@ function createPieCo(uid, name) {
         mu.hset(piekey, 'url', furl);
 
         //存入pieset列表
-        mu.sadd(setkey, name);
+        //--mu.sadd(setkey, name);
+        mu.sadd(setkey, pieid);
 
         //建立映射键_map:pie.name:pie.id
         mu.zadd('_map:pie.name:pie.id', pieid, uid + '/' + name);
@@ -105,7 +107,8 @@ _rotr.apis.getPieList = function () {
         var uid = ctx.ginfo.uid;
         var res = yield getPieListCo(uid);
         ctx.body = __newMsg(1, 'OK', res);
-        ctx.ginfo.getPieList = res;
+
+        ctx.apiRes = res;
         return ctx;
     });
     return co;
@@ -121,18 +124,12 @@ function getPieListCo(uid) {
         var usrkey = 'usr-' + uid;
         var setkey = yield _ctnu([_rds.cli, 'hget'], usrkey, 'pieSetKey');
         if (!setkey) throw Error('You have not create one pie.');
-        var pies = yield _ctnu([_rds.cli, 'smembers'], setkey);
-        if (!pies || pies.length < 1) throw Error('Your pie box is empty.');
 
-        //逐个读取pid
-        var mu = _rds.cli.multi();
-        for (var i in pies) {
-            var pkey = uid + '/' + pies[i];
-            mu.zscore('_map:pie.name:pie.id', pkey);
-        }
-        var pidarr = yield _ctnu([mu, 'exec']);
+        var pidarr = yield _ctnu([_rds.cli, 'smembers'], setkey);
+        if (!pidarr || pidarr.length < 1) throw Error('Your pie box is empty.');
 
         //逐个读取pie信息
+        var mu = _rds.cli.multi();
         for (var i in pidarr) {
             var pkey = 'pie-' + pidarr[i];
             mu.hgetall(pkey);
@@ -227,6 +224,8 @@ _rotr.apis.getPieInfoByPuidPnm = function () {
         var res = yield getPieInfoByPidCo(pid);
         res.power = (res.uid == uid) ? 'author' : 'usr';
         ctx.body = __newMsg(1, 'OK', res);
+
+        ctx.apiRes = res;
         return ctx;
     });
     return co;
@@ -249,6 +248,7 @@ _rotr.apis.getPieInfoByPid = function () {
         //加入权限写入
         res.power = (res.uid == uid) ? 'author' : 'usr';
         ctx.body = __newMsg(1, 'OK', res);
+        ctx.apiRes = res;
         return ctx;
     });
     return co;
@@ -317,7 +317,7 @@ function getPieInfoCo(uid, pname) {
 };
 
 
-/*通过req的地址栏获取pname和puid*/
+/*函数：通过req的地址栏获取pname和puid*/
 _pie.getPinfoByUrl = getPinfoByUrl;
 
 function getPinfoByUrl(url) {
@@ -341,6 +341,72 @@ function getPinfoByUrl(url) {
     };
 };
 
+
+/*检查是否pie名称已经存在重复的接口
+{psname:'editor',uid:1}//uid默认为当前用户id
+{};
+*/
+_rotr.apis.isPieExists = function () {
+    var ctx = this;
+    var co = $co(function* () {
+        var pname = ctx.query.pname || ctx.request.body.pname;
+        if (!pname) throw Error('Pie name can not be undefined.');
+
+        var puid = ctx.query.puid || ctx.request.body.puid;
+        if (!puid && !_cfg.regx.int.test(puid)) puid = ctx.ginfo.uid;
+        var ppath = puid + '/' + pname;
+        var exist = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.name:pie.id', ppath);
+        var res = (!exist) ? false : true;
+
+        ctx.body = __newMsg(0, 'OK', {
+            isExists: res
+        });
+
+        ctx.apiRes = res;
+        return ctx;
+    });
+    return co;
+};
+
+
+//重命名pie的接口
+_rotr.apis.renamePie = function () {
+    var ctx = this;
+    var co = $co(function* () {
+        var orgName = ctx.query.orgName || ctx.request.body.orgName;
+        if (!orgName) throw Error('Orginal name can not be undefined.');
+
+        var newName = ctx.query.newName || ctx.request.body.newName;
+        if (!newName) throw Error('New name can not be undefined.');
+
+        var uid = ctx.ginfo.uid;
+
+        //先检查是否存在
+        var ppath = uid + '/' + orgName;
+        var exist = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.name:pie.id', ppath);
+        if (!exist) throw Error('The pie do not exists.');
+
+        var res;
+
+        ctx.body = __newMsg(0, 'OK', {
+            isExists: res
+        });
+
+        ctx.apiRes = res;
+        return ctx;
+    });
+    return co;
+};
+
+
+
+
+
+
+
+
+
+//重命名与另存为接口???
 
 
 //导出模块
