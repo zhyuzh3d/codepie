@@ -494,9 +494,42 @@ define(['jquery', 'piejs', 'jform', 'qiniu', 'md5'], function ($, piejs, jform, 
 
     var grp = $('<div id="---PIE" style="margin:16px"></div>').appendTo(bd);
 
+    /*检查一个重命名一个pie*/
+    var grpRenamePie = function () {
+        var grp = $('<div id="grpRenamePie" style="margin:16px"></div>').appendTo(bd);
+        grp.append($('<hr>'));
+        grp.append($('<h3>重命名自己的pie[../api/renamePie]</h3>'));
+
+        var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
+        fm.attr('action', '../api/renamePie');
+        $('<label>orgName</label>').appendTo(fm);
+        var pidipt = $('<input name="orgName">').val('test').appendTo(fm);
+        $('<label>newName</label>').appendTo(fm);
+        var pidipt = $('<input name="newName">').val('testNew').appendTo(fm);
+        var sendbtn = $('<button style="padding:8px 16px">点击执行</button>').appendTo(grp);
+
+        $('<br><label>RES:</label><br>').appendTo(grp);
+        var resdiv = $('<div>...</div>').appendTo(grp);
+        resdiv.css('word-break', 'break-all');
+
+        sendbtn.click(function (e) {
+            fm.ajaxSubmit({
+                type: 'POST',
+                success: function (res) {
+                    console.log('renamePie', res);
+                    resdiv.html(JSON.stringify(res));
+                },
+            });
+        });
+
+        return grp;
+    }();
+
+
+
     /*检查一个pie是否已经存在，使用短名*/
-    var grPisPieExists = function () {
-        var grp = $('<div id="grPisPieExists" style="margin:16px"></div>').appendTo(bd);
+    var grpIsPieExists = function () {
+        var grp = $('<div id="grpIsPieExists" style="margin:16px"></div>').appendTo(bd);
         grp.append($('<hr>'));
         grp.append($('<h3>检查一个pie是否已经存在，使用短名[../api/isPieExists]</h3>'));
 
@@ -506,7 +539,7 @@ define(['jquery', 'piejs', 'jform', 'qiniu', 'md5'], function ($, piejs, jform, 
         var pidipt = $('<input name="pname">').val('sample').appendTo(fm);
         $('<label>puid</label>').appendTo(fm);
         var pidipt = $('<input name="puid">').val('1').appendTo(fm);
-        var sendbtn = $('<button style="padding:8px 16px">点击获取</button>').appendTo(grp);
+        var sendbtn = $('<button style="padding:8px 16px">点击检测</button>').appendTo(grp);
 
         $('<br><label>RES:</label><br>').appendTo(grp);
         var resdiv = $('<div>...</div>').appendTo(grp);

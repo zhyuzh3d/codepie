@@ -7,7 +7,7 @@ var _pie = {};
 /*接口：用户创建一个pieApp
 创建pie-100(hash)键
 创建一个app.js文件在uid/piename/app.js
-建立映射键_map:pie.name:pie.id
+建立映射键_map:pie.path:pie.id
 创建set-100(set)键，存放用户的pie列表,usr-100.pieSetKey
 为usr-100增加pieSetKey字段指向set-100
 req:{name:'...'};
@@ -37,7 +37,7 @@ function createPieCo(uid, name) {
 
         //检查是否有重名
         var ppath = uid + '/' + name;
-        var exist = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.name:pie.id', ppath);
+        var exist = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.path:pie.id', ppath);
         if (exist) throw Error('The pie name [' + name + '] already  exists.')
 
         //获取usr.piesetkey，如果没有就创建
@@ -69,13 +69,14 @@ function createPieCo(uid, name) {
         mu.hset(piekey, 'name', name);
         mu.hset(piekey, 'uid', uid);
         mu.hset(piekey, 'url', furl);
+        mu.hset(piekey, 'path', ppath);
 
         //存入pieset列表
         //--mu.sadd(setkey, name);
         mu.sadd(setkey, pieid);
 
-        //建立映射键_map:pie.name:pie.id
-        mu.zadd('_map:pie.name:pie.id', pieid, uid + '/' + name);
+        //建立映射键_map:pie.path:pie.id
+        mu.zadd('_map:pie.path:pie.id', pieid, uid + '/' + name);
         var res = yield _ctnu([mu, 'exec']);
 
         for (var i = 0; i < res.length; i++) {
@@ -183,7 +184,7 @@ function setPieStateByNameCo(uid, pname, state) {
         var piename = uid + '/' + pname;
 
         //找到pid
-        var pid = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.name:pie.id', piename);
+        var pid = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.path:pie.id', piename);
         if (!pid) throw Error('Can not find the pie id [' + pname + ']');
 
         //设置state,先检查是否存在
@@ -218,7 +219,7 @@ _rotr.apis.getPieInfoByPuidPnm = function () {
 
         //找到pid
         var piename = authid + '/' + name;
-        var pid = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.name:pie.id', piename);
+        var pid = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.path:pie.id', piename);
         if (!pid) throw Error('Can not find the pie id [' + pname + ']');
 
         var res = yield getPieInfoByPidCo(pid);
@@ -281,7 +282,6 @@ function getPieInfoByPidCo(pid) {
 
 
 
-
 /*获取pie的基本信息，这些信息时公开的，所以没有限制
  */
 _pie.getPieInfoCo = getPieInfoCo;
@@ -292,7 +292,7 @@ function getPieInfoCo(uid, pname) {
         var piename = uid + '/' + pname;
 
         //找到pid
-        var pid = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.name:pie.id', piename);
+        var pid = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.path:pie.id', piename);
         if (!pid) throw Error('Can not find the pie id [' + pname + ']');
 
         //先检查是否存在
@@ -355,7 +355,7 @@ _rotr.apis.isPieExists = function () {
         var puid = ctx.query.puid || ctx.request.body.puid;
         if (!puid && !_cfg.regx.int.test(puid)) puid = ctx.ginfo.uid;
         var ppath = puid + '/' + pname;
-        var exist = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.name:pie.id', ppath);
+        var exist = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.path:pie.id', ppath);
         var res = (!exist) ? false : true;
 
         ctx.body = __newMsg(0, 'OK', {
@@ -369,7 +369,10 @@ _rotr.apis.isPieExists = function () {
 };
 
 
-//重命名pie的接口
+/*重命名pie的接口
+{orgName:'xxx',newName:'xxx'}
+{}
+*/
 _rotr.apis.renamePie = function () {
     var ctx = this;
     var co = $co(function* () {
@@ -380,20 +383,34 @@ _rotr.apis.renamePie = function () {
         if (!newName) throw Error('New name can not be undefined.');
 
         var uid = ctx.ginfo.uid;
+        var res = yield _pie.renamePieCo(uid, orgName, newName);
 
-        //先检查是否存在
-        var ppath = uid + '/' + orgName;
-        var exist = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.name:pie.id', ppath);
-        if (!exist) throw Error('The pie do not exists.');
-
-        var res;
-
-        ctx.body = __newMsg(0, 'OK', {
-            isExists: res
-        });
-
+        ctx.body = __newMsg(0, 'OK');
         ctx.apiRes = res;
         return ctx;
+    });
+    return co;
+};
+
+/*重命名pie的函数
+只能重命名自己的pie
+*/
+_pie.renamePieCo = renamePieCo;
+
+function renamePieCo(uid, orgName, newName) {
+    var co = $co(function* () {
+        //先检查是否存在
+        var ppath = uid + '/' + orgName;
+        var pid = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.path:pie.id', ppath);
+        if (!pid) throw Error('The pie do not exists.');
+
+        //修改pie.name和_map:pie.path:pie.id键
+        var mu = _rds.cli.multi();
+        mu.hset('pie-' + pid, 'name', newName);
+        mu.zadd('_map:pie.path:pie.id', uid + '/' + newName, pid);
+        mu.zrem('_map:pie.path:pie.id', uid + '/' + orgName);
+        var res = yield _ctnu([mu, 'exec']);
+        return res;
     });
     return co;
 };

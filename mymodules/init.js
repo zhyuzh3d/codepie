@@ -59,7 +59,7 @@ _init.init = function () {
         //为usr－1创建pie
         for (var i in piearr) {
             var p = piearr[i];
-            var rp = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.name:pie.id', '1/' + p.name);
+            var rp = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.path:pie.id', '1/' + p.name);
             if (rp == null) {
                 var pie = yield _pie.createPieCo(1, p.name);
                 var res = yield _ctnu([_rds.cli, 'hset'], 'pie-' + pie.id, 'url', p.url);

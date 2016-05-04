@@ -24,8 +24,8 @@ function* pageApp(next) {
     if (!puid) puid = 1;
     var pname = puid + '/' + this.params.appname;
 
-    //从_map:pie.name:pie.id取pid
-    var pid = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.name:pie.id', pname);
+    //从_map:pie.path:pie.id取pid
+    var pid = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.path:pie.id', pname);
     if (!pid) {
         var html = notFoundHtml;
         this.body = notFoundHtml;

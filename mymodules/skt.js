@@ -27,7 +27,7 @@ function startFn(skt) {
         //从数据库读取uid和pid
         var mu = _rds.cli.multi();
         mu.zscore('_map:usr.ukey:usr.id', ukey);
-        mu.zscore('_map:pie.name:pie.id', pname);
+        mu.zscore('_map:pie.path:pie.id', pname);
         var resarr = yield _ctnu([mu, 'exec']);
         var uid = resarr[0];
         if (!uid) throw Error('Can not get usr id.');
