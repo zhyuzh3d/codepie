@@ -69,7 +69,6 @@ function createPieCo(uid, name) {
         mu.hset(piekey, 'name', name);
         mu.hset(piekey, 'uid', uid);
         mu.hset(piekey, 'url', furl);
-        mu.hset(piekey, 'path', ppath);
 
         //存入pieset列表
         //--mu.sadd(setkey, name);
