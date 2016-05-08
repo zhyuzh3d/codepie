@@ -60,8 +60,6 @@ function createPieCo(uid, name) {
         var fileobj = yield _qn.uploadDataCo(fstr, filekey);
         var furl = _qn.cfg.BucketDomain + fileobj.key;
 
-
-
         //创建pie-id键hash
         var piekey = 'pie-' + pieid;
         mu.hset(piekey, 'id', pieid);
@@ -69,6 +67,7 @@ function createPieCo(uid, name) {
         mu.hset(piekey, 'name', name);
         mu.hset(piekey, 'uid', uid);
         mu.hset(piekey, 'url', furl);
+        mu.hset(piekey, 'state', 1);
 
         //存入pieset列表
         //--mu.sadd(setkey, name);
@@ -133,7 +132,7 @@ function getPieListCo(uid) {
         for (var i in pidarr) {
             var pkey = 'pie-' + pidarr[i];
             mu.hgetall(pkey);
-        }
+        };
         var piearr = yield _ctnu([mu, 'exec']);
 
         //组成最终返回数据
@@ -197,6 +196,53 @@ function setPieStateByNameCo(uid, pname, state) {
     return co;
 };
 
+/*设置pie的state，可以用来作为删除或恢复使用
+req:{id:'...',state:-1}
+res:{}
+*/
+_rotr.apis.setPieStateByPid = function () {
+    var ctx = this;
+    var co = $co(function* () {
+        var uid = ctx.ginfo.uid;
+
+        var pid = ctx.query.id || ctx.request.body.id;
+        if (!pid || !_cfg.regx.int.test(pid)) throw Error('Pie id format error.');
+
+        var state = ctx.query.state || ctx.request.body.state;
+        if (!state || !_cfg.regx.int.test(state)) throw Error('State format error.');
+
+        var res = yield setPieStateByPidCo(uid, pid, state);
+        ctx.body = __newMsg(1, 'OK');
+        return ctx;
+    });
+    return co;
+};
+
+
+/*设置pie的state状态为移除
+验证权限，然后操作
+检查uid一定要和puid一致才能修改，只能设置自己的pie
+*/
+_pie.setPieStateByPidCo = setPieStateByPidCo;
+
+function setPieStateByPidCo(uid, pid, state) {
+    var co = $co(function* () {
+        //设置state,先检查是否存在
+        var piekey = 'pie-' + pid;
+        var isExsist = yield _ctnu([_rds.cli, 'exists'], piekey);
+        if (!isExsist) throw Error('The pie [' + pname + '] does not exists.')
+
+        //检查用户身份是否pie作者
+        var puid = yield _ctnu([_rds.cli, 'hget'], piekey, 'uid');
+        if (puid != uid) throw Error('The pie is not yours.');
+
+        //修改状态
+        var res = yield _ctnu([_rds.cli, 'hset'], piekey, 'state', state);
+        return res;
+    });
+    return co;
+};
+
 
 
 /*使用pieUid和pieName获取pie的基本信息，如作者、js路径、pieId等
@@ -217,9 +263,9 @@ _rotr.apis.getPieInfoByPuidPnm = function () {
         if (!authid) authid = uid;
 
         //找到pid
-        var piename = authid + '/' + name;
-        var pid = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.path:pie.id', piename);
-        if (!pid) throw Error('Can not find the pie id [' + pname + ']');
+        var ppath = authid + '/' + name;
+        var pid = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.path:pie.id', ppath);
+        if (!pid) throw Error('Can not find the pie id [' + ppath + ']');
 
         var res = yield getPieInfoByPidCo(pid);
         res.power = (res.uid == uid) ? 'author' : 'usr';
@@ -406,23 +452,13 @@ function renamePieCo(uid, orgName, newName) {
         //修改pie.name和_map:pie.path:pie.id键
         var mu = _rds.cli.multi();
         mu.hset('pie-' + pid, 'name', newName);
-        mu.zadd('_map:pie.path:pie.id', uid + '/' + newName, pid);
+        mu.zadd('_map:pie.path:pie.id', pid, uid + '/' + newName);
         mu.zrem('_map:pie.path:pie.id', uid + '/' + orgName);
         var res = yield _ctnu([mu, 'exec']);
         return res;
     });
     return co;
 };
-
-
-
-
-
-
-
-
-
-//重命名与另存为接口???
 
 
 //导出模块

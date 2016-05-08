@@ -41,8 +41,8 @@ require(modarr, function ($, piejs, CodeMirror) {
     });
 
     //获取地址栏参数
-    var appname = piejs.getUrlParam('pieName');
-    var authid = piejs.getUrlParam('pieUid');
+    var appname = piejs.getUrlParam('pname');
+    var authid = piejs.getUrlParam('puid');
 
 
     //按钮组
@@ -179,7 +179,10 @@ require(modarr, function ($, piejs, CodeMirror) {
         if (authid) tarapi += '&uid=' + authid;
 
         $.post(tarapi, function (msg) {
-            if (msg.code != 1) throw Error('getPieInfoByPuidPnm failed:' + msg.text);
+            if (msg.code != 1) {
+                console.log('>getPieInfoByPuidPnm failed:' + msg.text);
+                return;
+            };
             //如果是author，显示savebtn
             if (piejs.usrPower[msg.data.power] >= piejs.usrPower.author) {
                 btngrp.saveBtn.show();

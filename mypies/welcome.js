@@ -15,10 +15,35 @@ require(['jquery'], function ($) {
 
     var grpStart = function () {
         var grp = $('<div style="text-align:center;margin-top:15%;line-height:1.5em"></div>');
-        grp.append($('<div style="font-weight:bold;font-size:18px;line-height:36px">代码派 !</div>'));
-        grp.append($('<div style="line-height:16px">Welcome to js codepie !</div>'));
-        grp.append($('<div style="font-size:12px">-pie:welcome-</div>'));
-        grp.append($('<div style="font-size:12px">网站建设中，即将开启...</div>'));
+        grp.append($('<div style="font-weight:bold;font-size:18px;line-height:2em">代码派 !</div>'));
+        grp.append($('<div style="line-height:0.8em">Welcome to js codepie !</div>'));
+        var startBtn = $('<div style="font-size:0.75em">立即开始</div>').appendTo(grp);
+        startBtn.css({
+            'font-size': '0.8em',
+            'margin-top': '1em',
+            'display': 'inline-block',
+            'padding': '0.5em 2em',
+            'background': '#5A0',
+            'color': '#FFF',
+            'border-radius': '4px',
+            'border': '1px solid #380',
+            'cursor': 'pointer',
+        });
+
+        startBtn.hover(function () {
+            startBtn.css({
+                'background': '#6B0',
+            });
+        }, function () {
+            startBtn.css({
+                'background': '#5A0',
+            });
+        });
+
+        startBtn.click(function () {
+            location.href = 'http://' + location.host + '/app/start';
+        });
+
         return grp;
     }();
     grpStart.appendTo(bd);
@@ -27,10 +52,10 @@ require(['jquery'], function ($) {
     $('<style>a:link,a:visited{text-decoration:none} a:hover{text-decoration:none}</style>').appendTo(bd)
     var icpdiv = $('<div style="font-size:12px;color:#666;text-align:center"></div').appendTo(bd);
     icpdiv.css({
-        'position':'absolute',
-        'bottom':'10px',
-        'text-align':'center',
-        'width':'100%',
+        'position': 'absolute',
+        'bottom': '1em',
+        'text-align': 'center',
+        'width': '100%',
     })
     $('<a href="http://www.miitbeian.gov.cn">[苏ICP备15036923号-2]</a>').appendTo(icpdiv);
 });

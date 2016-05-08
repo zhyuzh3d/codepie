@@ -81,6 +81,7 @@ function* pageApp(next) {
         piehtml = piehtml.replace(/{{pieNameShort}}/g, pnameshort);
         piehtml = piehtml.replace(/{{gkey}}/g, gkey); //gkey写入
         piehtml = piehtml.replace(/{{pieUrl}}/g, purl + '?gkey=' + gkey);
+        piehtml = piehtml.replace(/{{pieUrlShort}}/g, purl);
         piehtml = piehtml.replace(/{{pieName}}/g, pname);
 
         this.body = piehtml;

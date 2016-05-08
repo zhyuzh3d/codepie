@@ -243,7 +243,7 @@ define(['jquery', 'soketio'], function ($, soketio) {
         sktio.emit('transSmsg', dt);
     };
 
-    //更新factory的skt的sid的接口
+    //更新factory的skt的sid的接口,同时设置为在线state＝1
     piejs.sktio.on('updateSktInfo', updateSktInfo);
 
     function updateSktInfo(msg) {

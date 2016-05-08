@@ -647,7 +647,7 @@ define(['jquery', 'piejs', 'jform', 'qiniu', 'md5'], function ($, piejs, jform, 
             var nameipt = $('<input name="name">').val(name).appendTo(pfm);
             $('<label>state</label>').appendTo(pfm);
             var stateipt = $('<input name="state" style="width:50px">').val(state).appendTo(pfm);
-            var delbtn = $('<span style="color:#F00;cursor:pointer">设置</span>').appendTo(pfm);
+            var delbtn = $('<span style="color:#c0a;cursor:pointer">设置</span>').appendTo(pfm);
             li.appendTo(resul);
 
             delbtn.click(function (e) {
