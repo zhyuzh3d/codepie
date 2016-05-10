@@ -1,19 +1,19 @@
 /*外部库设置*/
 require.config({
     paths: {
-        jquery: '//' + window.location.host + '/lib/jquery/2.2.1/jquery.min',
-        piejs: '//' + window.location.host + '/lib/piejs/0.1.1/piejs',
-        cm: '//' + window.location.host + '/lib/codemirror/5.12.0',
+        jquery: 'http://' + window.location.host + '/lib/jquery/2.2.1/jquery.min',
+        piejs: 'http://' + window.location.host + '/lib/piejs/0.1.1/piejs',
+        cm: 'http://' + window.location.host + '/lib/codemirror/5.12.0',
     },
     map: {
         '*': {
-            'css': '//' + window.location.host + '/lib/require-css/0.1.8/css.min.js',
+            'css': 'http://' + window.location.host + '/lib/require-css/0.1.8/css.min.js',
         }
     },
     shim: {
         jquery: {
-            deps: ['css!//' + window.location.host + '/lib/codemirror/5.12.0/lib/codemirror.css',
-                   'css!//' + window.location.host + '/lib/codemirror/5.12.0/addon/hint/show-hint.css']
+            deps: ['css!http://' + window.location.host + '/lib/codemirror/5.12.0/lib/codemirror.css',
+                   'css!http://' + window.location.host + '/lib/codemirror/5.12.0/addon/hint/show-hint.css']
         },
     },
 });

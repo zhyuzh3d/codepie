@@ -1,11 +1,11 @@
 /*外部库设置*/
 require.config({
     paths: {
-        jquery: '//' + window.location.host + '/lib/jquery/2.2.1/jquery.min',
-        piejs: '//' + window.location.host + '/lib/piejs/0.1.1/piejs',
-        jform: '//' + window.location.host + '/lib/jquery.form/3.51/jquery.form.min',
-        qiniu: '//' + window.location.host + '/lib/qiniu/qiniu',
-        md5: '//' + window.location.host + '/lib/spark-md5/2.0.2/spark-md5.min',
+        jquery: 'http://' + window.location.host + '/lib/jquery/2.2.1/jquery.min',
+        piejs: 'http://' + window.location.host + '/lib/piejs/0.1.1/piejs',
+        jform: 'http://' + window.location.host + '/lib/jquery.form/3.51/jquery.form.min',
+        qiniu: 'http://' + window.location.host + '/lib/qiniu/qiniu',
+        md5: 'http://' + window.location.host + '/lib/spark-md5/2.0.2/spark-md5.min',
     },
 });
 

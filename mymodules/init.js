@@ -54,6 +54,9 @@ _init.init = function () {
         }, {
             name: 'sample',
             url: '../mypies/sample.js'
+        },{
+            name: 'login',
+            url: '../mypies/login.js'
         }];
 
         //为usr－1创建pie

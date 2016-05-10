@@ -1,29 +1,30 @@
 /*外部库设置*/
 require.config({
     paths: {
-        jquery: '//' + window.location.host + '/lib/jquery/2.2.1/jquery.min',
-        bootstrap: '//' + window.location.host + '/lib/bootstrap/3.3.6/bootstrap.min',
-        swal: '//' + window.location.host + '/lib/sweetalert/1.1.3/sweetalert.min',
-        toastr: '//' + window.location.host + '/lib/toastr.js/latest/toastr.min',
+        jquery: 'http://' + window.location.host + '/lib/jquery/2.2.1/jquery.min',
+        bootstrap: 'http://' + window.location.host + '/lib/bootstrap/3.3.6/bootstrap.min',
+        swal: 'http://' + window.location.host + '/lib/sweetalert/1.1.3/sweetalert.min',
+        toastr: 'http://' + window.location.host + '/lib/toastr.js/latest/toastr.min',
     },
     map: {
         '*': {
-            'css': '//' + window.location.host + '/lib/require-css/0.1.8/css.min.js',
+            'css': 'http://' + window.location.host + '/lib/require-css/0.1.8/css.min.js',
         }
     },
     shim: {
         bootstrap: {
-            deps: ['css!//' + window.location.host + '/lib/bootstrap/3.3.6/bootstrap.min.css',
-                   'css!//' + window.location.host + '/lib/bootstrap/3.3.6/bootstrap-theme.min.css']
+            deps: ['css!http://' + window.location.host + '/lib/bootstrap/3.3.6/bootstrap.min.css',
+                   'css!http://' + window.location.host + '/lib/bootstrap/3.3.6/bootstrap-theme.min.css']
         },
         swal: {
-            deps: ['css!//' + window.location.host + '/lib/sweetalert/1.1.3/sweetalert.min.css']
+            deps: ['css!http://' + window.location.host + '/lib/sweetalert/1.1.3/sweetalert.min.css']
         },
         toastr: {
-            deps: ['css!//' + window.location.host + '/lib/toastr.js/latest/toastr.min.css']
+            deps: ['css!http://' + window.location.host + '/lib/toastr.js/latest/toastr.min.css']
         },
     },
 });
+
 
 /*实际函数运行*/
 require(['jquery', 'bootstrap', 'swal', 'toastr'], function ($, bootstrap, swal, toastr) {
@@ -42,13 +43,16 @@ require(['jquery', 'bootstrap', 'swal', 'toastr'], function ($, bootstrap, swal,
         var pieGrp = $('<div id="pieGrp" class="container col-sm-12 col-md-10 col-md-offset-1"></div>').appendTo(pieBox);
         pieGrp.css('padding', '0 1em');
 
+        //title
+        var titleGrp = $('<div class="h3"></div>').appendTo(pieGrp);
+        var backA = $('<a></a>').appendTo(titleGrp);
+        backA.attr('href', 'http://' + location.host);
+        $('<span class="glyphicon" style="margin:0 0.5em">|<span>').appendTo(titleGrp);
+        var backBtn = $('<span class="glyphicon">返回</span>').appendTo(backA);
+        $('<span class="glyphicon">我的应用列表</span>').appendTo(titleGrp);
 
         //title
-        var titleGrp = $('<div></div>').appendTo(pieGrp);
-        $('<div class="h3">我的应用列表</div>').appendTo(titleGrp);
-
-        //title
-        var tipGrp = $('<div></div>').appendTo(pieGrp);
+        var tipGrp = $('<div style="margin-top:1em"></div>').appendTo(pieGrp);
         $('<div style="color:#888">您可以使用 <span class="glyphicon glyphicon-plus"></span> 创建，使用 <span class="glyphicon glyphicon-remove"></span> 删除，或者 <span class="glyphicon glyphicon-fire"></span> 运行或 <span class="glyphicon glyphicon-pencil"></span> 编辑</div>').appendTo(tipGrp);
 
         //addbtn
@@ -184,7 +188,7 @@ require(['jquery', 'bootstrap', 'swal', 'toastr'], function ($, bootstrap, swal,
                     var pieArr = res.data.pieArr;
                     fillLst(pieArr);
                 } else {
-                    toastr.error('获取列表失败:', res.text);
+                    toastr.error(res.text);
                 };
             });
         };

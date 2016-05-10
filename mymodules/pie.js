@@ -105,7 +105,11 @@ _rotr.apis.getPieList = function () {
     var co = $co(function* () {
         var uid = ctx.ginfo.uid;
         var res = yield getPieListCo(uid);
-        ctx.body = __newMsg(1, 'OK', res);
+        if (res.constructor == String) {
+            ctx.body = __newMsg(-1, res, {});
+        } else {
+            ctx.body = __newMsg(1, 'OK', res);
+        };
 
         ctx.apiRes = res;
         return ctx;
@@ -119,13 +123,13 @@ _pie.getPieListCo = getPieListCo;
 
 function getPieListCo(uid) {
     var co = $co(function* () {
-        //拿到set列表
-        var usrkey = 'usr-' + uid;
-        var setkey = yield _ctnu([_rds.cli, 'hget'], usrkey, 'pieSetKey');
-        if (!setkey) throw Error('You have not create one pie.');
+            //拿到set列表
+            var usrkey = 'usr-' + uid;
+            var setkey = yield _ctnu([_rds.cli, 'hget'], usrkey, 'pieSetKey');
+            if (!setkey) return '您还没有创建应用.';
 
         var pidarr = yield _ctnu([_rds.cli, 'smembers'], setkey);
-        if (!pidarr || pidarr.length < 1) throw Error('Your pie box is empty.');
+        if (!pidarr || pidarr.length < 1) return '应用列表为空.';
 
         //逐个读取pie信息
         var mu = _rds.cli.multi();
@@ -143,7 +147,7 @@ function getPieListCo(uid) {
 
         return res;
     });
-    return co;
+return co;
 };
 
 

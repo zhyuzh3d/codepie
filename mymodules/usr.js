@@ -451,7 +451,22 @@ function getUsrInfoByUidCo(uid) {
     return co;
 };
 
+/*退出登录,清理掉客户端的cookie里的ukey
+{}
+{}
+*/
 
+_rotr.apis.logout = function () {
+    var ctx = this;
+    var co = $co(function* () {
+        ctx.cookies.set('ukey', undefined);
+        ctx.body = __newMsg(1, 'OK');
+
+        ctx.apiRes = undefined;
+        return ctx;
+    });
+    return co;
+};
 
 
 
