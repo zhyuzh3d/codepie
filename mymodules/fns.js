@@ -114,12 +114,17 @@ function __sha1(str, dig) {
 global.__newMsg = __newMsg;
 
 function __newMsg(code, text, data) {
+    var info;
     if (text.constructor == Array) {
-        text = text.join(' ');
+        if (text.length >= 2) {
+            info = text[1];
+        };
+        text = text[0];
     };
     return {
         code: code,
         text: text,
+        info: info,
         data: data,
         time: Number(new Date()),
     };

@@ -4,6 +4,7 @@ require.config({
         jquery: 'http://' + window.location.host + '/lib/jquery/2.2.1/jquery.min',
         bootstrap: 'http://' + window.location.host + '/lib/bootstrap/3.3.6/bootstrap.min',
         toastr: 'http://' + window.location.host + '/lib/toastr.js/latest/toastr.min',
+        swal: 'http://' + window.location.host + '/lib/sweetalert/1.1.3/sweetalert.min',
     },
     map: {
         '*': {
@@ -18,59 +19,93 @@ require.config({
         toastr: {
             deps: ['css!http://' + window.location.host + '/lib/toastr.js/latest/toastr.min.css']
         },
+        swal: {
+            deps: ['css!http://' + window.location.host + '/lib/sweetalert/1.1.3/sweetalert.min.css']
+        },
     },
 });
 
 
 
 /*实际函数运行*/
-require(['jquery', 'bootstrap', 'toastr'], function ($, bootstrap, toastr) {
+require(['jquery', 'bootstrap', 'toastr', 'swal'], function ($, bootstrap, toastr, swal) {
     var bd = $('#pieBox');
     var tmp = bd.children('#_pieTemp');
     tmp.fadeOut(200, function () {
         tmp.remove();
     });
 
+    var sexs = {
+        '0': '保密',
+        '1': '男',
+        '2': '女',
+    };
+
     var grpStart = function () {
-        var grp = $('<div style="text-align:center;margin-top:15%;line-height:1.5em"></div>');
-        grp.append($('<div style="font-weight:bold;font-size:1.5em">代码派 !</div>'));
-        var lnuinfo = $('<div style="margin-top:1em"></div>').appendTo(grp);
-        var usricon = $('<span class="glyphicon glyphicon-user"></span>').appendTo(lnuinfo);
-        usricon.css('vertical-align', 'baseline');
+        var grp = $('<div class="row" style="margin:10% 0;text-align:center"></div>');
+        var welgrp = $('<div style="margin:1em 0;text-align:center"></div>').appendTo(grp);
+        var weltxt = ($('<div style="font-size:1.2em">欢迎来到［代码派］！</div>')).appendTo(welgrp);
+        var weletxt = ($('<div style="font-size:0.8em">welcome to jscodepie.com！</div>')).appendTo(welgrp);
 
-        //logoutbtn
-        var logoutBtn = $('<span class="glyphicon glyphicon-remove"></span>').appendTo(lnuinfo);
-        logoutBtn.css({
-            'cursor': 'pointer',
-            'color': '#dd2b9f',
-            'margin-left': '0.5em',
-            'vertical-align': 'baseline'
-        });;
-        logoutBtn.hide();
+        var uinfo;
 
-        logoutBtn.click(function () {
-            var api = 'http://' + location.host + '/api/logout';
-            $.post(api, {}, function (res) {
-                console.log('POST', api, undefined, res);
-                if (res.code == 1) {
-                    location.reload();
-                };
+        var cardpnl = $('<div class="panel panel-default "></div>').appendTo(grp);
+
+        function fillcard() {
+            cardpnl.addClass('col-xs-10 col-xs-offset-1 col-sm-8 col-sm-offset-2 col-md-6 col-md-offset-3');
+            cardpnl.css({
+                'padding': '0'
+            })
+            var cardhd = $('<div class="panel-heading" style="padding:0.2em;font-size:0.8em;height:2em;padding:0.2em 1em"></div>').appendTo(cardpnl);
+            var tttxt = $('<span class="pull-left"></span>').appendTo(cardhd);
+            var outbtn = $('<span class="pull-right" style="cursor:pointer">注销</span>').appendTo(cardhd);
+            (uinfo.mail) ? tttxt.html('派证件'): tttxt.html('临时通行证');
+            outbtn.click(function () {
+                var api = 'http://' + location.host + '/api/logout';
+                $.post(api, {}, function (res) {
+                    console.log('POST', api, undefined, res);
+                    if (res.code == 1) {
+                        swal({
+                            type: 'success',
+                            title: '',
+                            text: '退出成功，点击确定刷新页面',
+                        }, function () {
+                            location.reload();
+                        });
+                    } else {
+                        toastr.error(res.text);
+                    };
+                });
             });
-        });
 
-        //setusrbtn
-        var setusrBtn = $('<span class="glyphicon glyphicon-edit"></span>').appendTo(lnuinfo);
-        setusrBtn.css({
-            'cursor': 'pointer',
-            'color': '#2b9fdd',
-            'margin-left': '0.5em',
-            'vertical-align': 'baseline',
-        });
-        setusrBtn.hide();
 
-        setusrBtn.click(function () {
-            location.href = 'http://' + location.host + '/app/login';
-        });
+            var cardbd = $('<div class="panel-body" style="padding:1em 10%;text-align:left;line-height:2em"></div>').appendTo(cardpnl);
+
+            var nickln = $('<div style="height:1.8em"></div>').appendTo(cardbd);
+            nickln.append($('<span class="glyphicon glyphicon-user" style="margin-right:1em"> 昵称：</span>'));
+            var nicktxt = $('<span class="glyphicon">' + uinfo.nick + '</span>').appendTo(nickln);
+            var setlink = $('<a class="glyphicon glyphicon-pencil" style="margin-left:1em"></a>').appendTo(nickln);
+            setlink.attr('href', 'http://' + location.host + '/pie/login?tab=setProfile');
+
+            var mailln = $('<div style="height:1.8em"></div>').appendTo(cardbd);
+            mailln.append($('<span class="glyphicon glyphicon-envelope" style="margin-right:1em"> 邮箱：</span>'));
+            var ml = (uinfo.mail) ? uinfo.mail : '未绑定';
+            var mailtxt = $('<span class="glyphicon">' + ml + '</span>').appendTo(mailln);
+
+            var bindlink = $('<a class="btn btn-warning btn-xs" style="margin-left:1em">立即绑定</a>').appendTo(mailln);
+            bindlink.attr('href', 'http://' + location.host + '/pie/login?tab=bindMail');
+            (uinfo.mail) ? bindlink.hide(): bindlink.show();
+
+            var sexln = $('<div style="height:1.8em"></div>').appendTo(cardbd);
+            sexln.append($('<span class="glyphicon glyphicon-info-sign" style="margin-right:1em"> 性别：</span>'));
+            var sextxt = $('<span class="glyphicon">' + sexs[uinfo.sex] + '</span>').appendTo(sexln);
+            var setlink = $('<a class="glyphicon glyphicon-pencil" style="margin-left:1em"></a>').appendTo(sexln);
+            setlink.attr('href', 'http://' + location.host + '/pie/login?tab=setProfile');
+
+            var idln = $('<div style="height:1.8em"></div>').appendTo(cardbd);
+            idln.append($('<span class="glyphicon glyphicon-adjust" style="margin-right:1em"> 编号：</span>'));
+            var idtxt = $('<span class="glyphicon">' + uinfo.id + '</span>').appendTo(idln);
+        };
 
 
         //startbtn
@@ -86,17 +121,9 @@ require(['jquery', 'bootstrap', 'toastr'], function ($, bootstrap, toastr) {
             $.post(api, {}, function (res) {
                 console.log('POST', api, undefined, res);
                 var uiinfosp = $('<span></span>');
-                logoutBtn.before(uiinfosp);
                 if (res.code == 1) {
-                    if (!res.data.mail) {
-                        lnuinfo.css('color', '#AAA');
-                        setusrBtn.show();
-                        uiinfosp.html(' ' + res.data.id + ' : ' + res.data.nick + ' ( unbind mail ) ');
-                    } else {
-                        lnuinfo.css('color', '#000');
-                        uiinfosp.html(res.data.id + ' : ' + res.data.nick + ' ( ' + res.data.mail + ' ) ');
-                        logoutBtn.show();
-                    };
+                    uinfo = res.data;
+                    fillcard();
                 } else {
                     toastr.err(res.text);
                 };
@@ -109,13 +136,11 @@ require(['jquery', 'bootstrap', 'toastr'], function ($, bootstrap, toastr) {
     grpStart.appendTo(bd);
     grpStart.hide().fadeIn(1000);
 
-    $('<style>a:link,a:visited{text-decoration:none} a:hover{text-decoration:none}</style>').appendTo(bd)
     var icpdiv = $('<div style="font-size:12px;color:#666;text-align:center"></div').appendTo(bd);
     icpdiv.css({
-        'position': 'absolute',
-        'bottom': '1em',
+        'padding': '2em',
         'text-align': 'center',
         'width': '100%',
-    })
-    $('<a href="http://www.miitbeian.gov.cn">[苏ICP备15036923号-2]</a>').appendTo(icpdiv);
+    });
+    $('<a class="glyphicon" href="http://www.miitbeian.gov.cn">[苏ICP备15036923号-2]</a>').appendTo(icpdiv);
 });

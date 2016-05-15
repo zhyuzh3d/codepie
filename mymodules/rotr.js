@@ -144,11 +144,11 @@ function* procApi(next) {
 
     if (apifn && apifn.constructor == Function) {
         yield apifn.call(ctx, next).then(null, function (err) {
-            ctx.body = __newMsg(__errCode.APIERR, 'API:' + apinm + ' process failed:' + err.message);
+            ctx.body = __newMsg(__errCode.APIERR, [err.message, 'API proc failed:' + apinm + '.']);
             __errhdlr(err);
         });
     } else {
-        ctx.body = __newMsg(__errCode.NOTFOUND, 'Api not found:' + apinm);
+        ctx.body = __newMsg(__errCode.NOTFOUND, ['服务端找不到接口程序', 'API miss:' + apinm + '.']);
     };
     yield next;
 };

@@ -101,12 +101,12 @@ _rotr.apis.sendRegCodeToMail = function () {
     var co = $co(function* () {
         var uid = ctx.ginfo.uid;
         var mail = ctx.query.mail || ctx.request.body.mail;
-        if (!mail || !_cfg.regx.mail.test(mail)) throw Error('Mail format error.');
+        if (!mail || !_cfg.regx.mail.test(mail)) throw Error('邮箱格式错误.');
         var resend = ctx.query.resend || ctx.request.body.resend;
 
         //使用_map:usr.mail:usr.id键检查邮箱有没有被使用并成功注册，如果已经使用，那么抛出err
         var isreged = yield _ctnu([_rds.cli, 'zscore'], '_map:usr.mail:usr.id', mail);
-        if (isreged == 1) throw Error('The email[' + mail + '] is registered.');
+        if (isreged) throw Error('邮箱[' + mail + ']已经被其他账号绑定.');
 
         //使用_tmp:mailReg:mail（hash）键是否存在，如果存在，那么使用已有的regCode，否则生成新的
         var rkey = '_tmp:mailReg:' + mail;
@@ -124,8 +124,13 @@ _rotr.apis.sendRegCodeToMail = function () {
 
         //发送的内容
         var cont = mailRegCodeHtml.replace('{{regCode}}', regcode);
-        var res = yield _fns.sendMail(mail, 'The register code from jscodepie.com', cont);
-        ctx.body = res;
+        var res = yield _fns.sendMail(mail, '来自jscodepie.com的注册码', cont);
+        if (res.accepted && res.accepted.indexOf(mail) != -1) {
+            ctx.body = __newMsg(1, 'OK');
+        } else {
+            ctx.body = __newMsg(0, '发送注册码失败，请稍后再试');
+        };
+        ctx.body = __newMsg(1, 'OK', res);
 
         ctx.apiRes = res;
         return ctx;
@@ -249,11 +254,11 @@ _rotr.apis.sendResetPwToMail = function () {
     var co = $co(function* () {
         var uid = ctx.ginfo.uid;
         var mail = ctx.query.mail || ctx.request.body.mail;
-        if (!mail || !_cfg.regx.mail.test(mail)) throw Error('Mail format err.');
+        if (!mail || !_cfg.regx.mail.test(mail)) throw Error('邮箱格式错误.');
 
         //查找mail对应的usrid是否存在
         var usrid = yield _ctnu([_rds.cli, 'zscore'], '_map:usr.mail:usr.id', mail);
-        if (!usrid) throw Error('Mail[' + mail + '] has not registered.');
+        if (!usrid) throw Error('邮箱[' + mail + ']还没被绑定.');
         var usrkey = 'usr-' + usrid;
 
         //生成重置的6位密码,加密后写入数据库，1天过期，指定到usr-1.resetPwKey
@@ -268,7 +273,7 @@ _rotr.apis.sendResetPwToMail = function () {
 
         //发送邮件
         var cont = mailResetPwHtml.replace('{{resetPw}}', rstpw);
-        var res = yield _fns.sendMail(mail, 'The reset password from jscodepie.com', cont);
+        var res = yield _fns.sendMail(mail, '来自jscodepie.com的重置码', cont);
 
         ctx.body = __newMsg(1, 'OK', res);
 
@@ -290,19 +295,19 @@ _rotr.apis.loginByMail = function () {
     var co = $co(function* () {
         var uid = ctx.ginfo.uid;
         var mail = ctx.query.mail || ctx.request.body.mail;
-        if (!mail || !_cfg.regx.mail.test(mail)) throw Error('Mail format err.');
+        if (!mail || !_cfg.regx.mail.test(mail)) throw Error('邮箱格式错误.');
         var pw = ctx.query.pw || ctx.request.body.pw;
-        if (!pw || !_cfg.regx.pw.test(pw)) throw Error('Password format err.');
+        if (!pw || !_cfg.regx.pw.test(pw)) throw Error('密码格式错误.');
 
         //获取usrid
         var usrid = yield _ctnu([_rds.cli, 'zscore'], '_map:usr.mail:usr.id', mail);
-        if (!usrid) throw Error('Mail[' + mail + '] has not registered.');
+        if (!usrid) throw Error('邮箱[' + mail + '] 还没注册.');
         var usrkey = 'usr-' + usrid;
 
         //检查pw是否匹配
         var rpw = yield _ctnu([_rds.cli, 'hget'], usrkey, 'pw');
         var epw = __md5(pw + mail);
-        if (epw != rpw) throw Error('The password not match.')
+        if (epw != rpw) throw Error('密码与邮箱不匹配.')
 
         //读取全部信息并筛选
         var usr = yield _ctnu([_rds.cli, 'hgetall'], usrkey);
@@ -367,9 +372,9 @@ _rotr.apis.setProfile = function () {
         var usrkey = 'usr-' + uid;
 
         var nick = ctx.query.nick || ctx.request.body.nick;
-        if (!nick || !_cfg.regx.nick.test(nick)) throw Error('Nick format err.');
+        if (!nick || !_cfg.regx.nick.test(nick)) throw Error('昵称格式错误');
         var sex = ctx.query.sex || ctx.request.body.sex;
-        if (!sex || !_cfg.regx.sex.test(sex)) throw Error('Sex format err.');
+        if (!sex || !_cfg.regx.sex.test(sex)) throw Error('性别格式错误');
 
         //写入数据库
         var mu = _rds.cli.multi();

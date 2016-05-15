@@ -1,5 +1,5 @@
 [{
-    "sex": 1,
+    "sex": 2,
     "nick": "Andy"
 }, {
     "sex": 1,
@@ -71,72 +71,72 @@
     "sex": 1,
     "nick": "Vincent"
 }, {
-    "sex": 0,
+    "sex": 2,
     "nick": "Alice"
 }, {
-    "sex": 0,
+    "sex": 2,
     "nick": "Amy"
 }, {
-    "sex": 0,
+    "sex": 2,
     "nick": "Angelina"
 }, {
-    "sex": 0,
+    "sex": 2,
     "nick": "Barbara"
 }, {
-    "sex": 0,
+    "sex": 2,
     "nick": "Carry"
 }, {
-    "sex": 0,
+    "sex": 2,
     "nick": "Charlotte"
 }, {
-    "sex": 0,
+    "sex": 2,
     "nick": "Cindy"
 }, {
-    "sex": 0,
+    "sex": 2,
     "nick": "Diana"
 }, {
-    "sex": 0,
+    "sex": 2,
     "nick": "Emily"
 }, {
-    "sex": 0,
+    "sex": 2,
     "nick": "Emma"
 }, {
-    "sex": 0,
+    "sex": 2,
     "nick": "Eve"
 }, {
-    "sex": 0,
+    "sex": 2,
     "nick": "Fiona"
 }, {
-    "sex": 0,
+    "sex": 2,
     "nick": "Hellen"
 }, {
-    "sex": 0,
+    "sex": 2,
     "nick": "Jane"
 }, {
-    "sex": 0,
+    "sex": 2,
     "nick": "Linda"
 }, {
-    "sex": 0,
+    "sex": 2,
     "nick": "Lisa"
 }, {
-    "sex": 0,
+    "sex": 2,
     "nick": "Lucy"
 }, {
-    "sex": 0,
+    "sex": 2,
     "nick": "Mary"
 }, {
-    "sex": 0,
+    "sex": 2,
     "nick": "Molly"
 }, {
-    "sex": 0,
+    "sex": 2,
     "nick": "Polly"
 }, {
-    "sex": 0,
+    "sex": 2,
     "nick": "Rose"
 }, {
-    "sex": 0,
+    "sex": 2,
     "nick": "Tina"
 }, {
-    "sex": 0,
+    "sex": 2,
     "nick": "Vivian"
 }]

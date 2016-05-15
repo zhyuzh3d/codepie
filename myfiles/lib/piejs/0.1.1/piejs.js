@@ -25,6 +25,18 @@ define(['jquery', 'soketio'], function ($, soketio) {
         boss: 100, //网站最高管理员
     };
 
+    //常用正则表达式
+    piejs.regx = {
+        mail: /^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/,
+        code6: /^\d{6}$/, //6位数字
+        intp: /^\d+$/, //正整数
+        int: /^(-|\+)?\d+$/, //整数
+        pw: /^[0-9a-z]{8,32}$/, //8位验证码或者32位hex
+        nick: /^.{1,32}$/, //1～32位非回车
+        sex: /^[012]{1}$/, //0,1,2
+        pieName: /[0-9a-zA-Z\.]{3,32}/, //必须英文，但可以用点
+    };
+
     //从地址栏获取参数
     piejs.getUrlParam = function (name) {
         var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");

@@ -5,7 +5,7 @@ require.config({
         piejs: 'http://' + window.location.host + '/lib/piejs/0.1.1/piejs',
         jform: 'http://' + window.location.host + '/lib/jquery.form/3.51/jquery.form.min',
         qiniu: 'http://' + window.location.host + '/lib/qiniu/qiniu',
-        md5: 'http://' + window.location.host + '/lib/spark-md5/2.0.2/spark-md5.min',
+        md5: 'http://' + window.location.host + '/lib/spark-md5/2.0.2/spark-md5.min',md5: 'http://' + window.location.host + '/lib/spark-md5/2.0.2/spark-md5.min',
     },
 });
 

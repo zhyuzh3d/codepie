@@ -34,7 +34,23 @@ require(['jquery', 'bootstrap', 'swal', 'toastr'], function ($, bootstrap, swal,
     var tmp = pieBox.children('#_pieTemp');
     tmp.fadeOut(200, function () {
         tmp.remove();
+        genNavbar().prependTo(pieBox);
     });
+
+    var topNavbar;
+    var genNavbar = function () {
+        var navbar = $('<div class="row breadcrumb" style="margin:0;border-radius:0"></div>');
+        var backbtn = $('<li class="btn" style="padding:0">返回</li>').appendTo(navbar);
+        var refreshbtn = $('<li class="btn" style="padding:0">我的应用列表</li>').appendTo(navbar);
+        backbtn.click(function () {
+            window.location.href = document.referrer;
+        });
+        refreshbtn.click(function () {
+            location.reload();
+        });
+
+        return navbar;
+    };
 
     var grpStart = function () {
         $('head').append('<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">')
@@ -42,14 +58,6 @@ require(['jquery', 'bootstrap', 'swal', 'toastr'], function ($, bootstrap, swal,
         //layout
         var pieGrp = $('<div id="pieGrp" class="container col-sm-12 col-md-10 col-md-offset-1"></div>').appendTo(pieBox);
         pieGrp.css('padding', '0 1em');
-
-        //title
-        var titleGrp = $('<div class="h3"></div>').appendTo(pieGrp);
-        var backA = $('<a></a>').appendTo(titleGrp);
-        backA.attr('href', 'http://' + location.host);
-        $('<span class="glyphicon" style="margin:0 0.5em">|<span>').appendTo(titleGrp);
-        var backBtn = $('<span class="glyphicon">返回</span>').appendTo(backA);
-        $('<span class="glyphicon">我的应用列表</span>').appendTo(titleGrp);
 
         //title
         var tipGrp = $('<div style="margin-top:1em"></div>').appendTo(pieGrp);
