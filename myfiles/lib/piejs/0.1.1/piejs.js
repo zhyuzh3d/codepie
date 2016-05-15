@@ -155,7 +155,7 @@ define(['jquery', 'soketio'], function ($, soketio) {
 
     function sktCheckin(msg) {
         console.log('Connect to jscodepie skts:', msg);
-        if (msg.data.sid) {
+        if (msg.data && msg.data.sid) {
             sktio.sktInfo = msg.data;
             var fns = sktio.afterCheckinFnArr;
             if (fns && fns.constructor == Array) {

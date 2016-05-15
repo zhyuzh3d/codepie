@@ -49,17 +49,20 @@ require(['jquery', 'bootstrap', 'toastr', 'swal'], function ($, bootstrap, toast
 
         var uinfo;
 
-        var cardpnl = $('<div class="panel panel-default "></div>').appendTo(grp);
+        var cardln = $('<div class="row" style="margin:0"></div>').appendTo(grp);
+        var cardpnl = $('<div class="panel panel-default "></div>').appendTo(cardln);
 
         function fillcard() {
             cardpnl.addClass('col-xs-10 col-xs-offset-1 col-sm-8 col-sm-offset-2 col-md-6 col-md-offset-3');
             cardpnl.css({
                 'padding': '0'
             })
-            var cardhd = $('<div class="panel-heading" style="padding:0.2em;font-size:0.8em;height:2em;padding:0.2em 1em"></div>').appendTo(cardpnl);
+            var cardhd = $('<div class="panel-heading" style="font-size:1em;height:2em;padding:0.3em 1em"></div>').appendTo(cardpnl);
             var tttxt = $('<span class="pull-left"></span>').appendTo(cardhd);
-            var outbtn = $('<span class="pull-right" style="cursor:pointer">注销</span>').appendTo(cardhd);
-            (uinfo.mail) ? tttxt.html('派证件'): tttxt.html('临时通行证');
+            var outbtn = $('<a class="pull-right" style="cursor:pointer">注销</a>').appendTo(cardhd);
+            var loglink = $('<a class="pull-right" style="cursor:pointer;margin-right:1em">登录</a>').appendTo(cardhd);
+            loglink.attr('href', 'http://' + location.host + '/pie/login?tab=login');
+                (uinfo.mail) ? tttxt.html('您的派证件') : tttxt.html('您的临时通行证');
             outbtn.click(function () {
                 var api = 'http://' + location.host + '/api/logout';
                 $.post(api, {}, function (res) {

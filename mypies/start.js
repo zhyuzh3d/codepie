@@ -41,9 +41,13 @@ require(['jquery', 'bootstrap', 'swal', 'toastr'], function ($, bootstrap, swal,
     var genNavbar = function () {
         var navbar = $('<div class="row breadcrumb" style="margin:0;border-radius:0"></div>');
         var backbtn = $('<li class="btn" style="padding:0">返回</li>').appendTo(navbar);
+        var homebtn = $('<li class="btn" style="padding:0">首页</li>').appendTo(navbar);
         var refreshbtn = $('<li class="btn" style="padding:0">我的应用列表</li>').appendTo(navbar);
         backbtn.click(function () {
             window.location.href = document.referrer;
+        });
+        homebtn.click(function () {
+            window.location.href = 'http://' + location.host + '/pie/welcome';
         });
         refreshbtn.click(function () {
             location.reload();

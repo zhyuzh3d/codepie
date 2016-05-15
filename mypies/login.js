@@ -42,9 +42,13 @@ require(['jquery', 'bootstrap', 'swal', 'toastr', 'md5', 'piejs'], function ($, 
     var genNavbar = function () {
         var navbar = $('<div class="row breadcrumb" style="margin:0;border-radius:0"></div>');
         var backbtn = $('<li class="btn" style="padding:0">返回</li>').appendTo(navbar);
-        var refreshbtn = $('<li class="btn" style="padding:0">我的应用列表</li>').appendTo(navbar);
+        var homebtn = $('<li class="btn" style="padding:0">首页</li>').appendTo(navbar);
+        var refreshbtn = $('<li class="btn" style="padding:0">绑定与登录</li>').appendTo(navbar);
         backbtn.click(function () {
             window.location.href = document.referrer;
+        });
+        homebtn.click(function () {
+            window.location.href = 'http://' + location.host + '/pie/welcome';
         });
         refreshbtn.click(function () {
             location.reload();
@@ -69,9 +73,9 @@ require(['jquery', 'bootstrap', 'swal', 'toastr', 'md5', 'piejs'], function ($, 
         var pnlgrp = $('<div class="tab-content"></div>').appendTo(grpbox);
         pnlgrp.css({
             'width': '100%',
-            'border': '1px solid #CCC',
+            'border': '1px solid #ddd',
             'border-top': 'none',
-            'border-radius': '0.25em',
+            'border-radius': '0 0 0.4em 0.4em',
             'padding': '1em 2em 2em 2em',
         });
 
@@ -266,7 +270,7 @@ require(['jquery', 'bootstrap', 'swal', 'toastr', 'md5', 'piejs'], function ($, 
                 'cursor': 'pointer',
                 'display': 'block',
                 'margin': '1em 0',
-                'font-size': '0.8em'
+                'font-size': '0.9em'
             })
 
             //显示发送重置密码部分
@@ -378,7 +382,7 @@ require(['jquery', 'bootstrap', 'swal', 'toastr', 'md5', 'piejs'], function ($, 
             sexbtngrp['sextg' + uinfo.sex].button('toggle');
             nickipt.val(uinfo.nick);
             if (!uinfo.mail) {
-                logintip.html('您当前使用的是临时账号ID:' + uinfo.id + '，请绑定邮箱或重新登录');
+                logintip.html('您当前使用的是临时账号ID：' + uinfo.id + '，请绑定邮箱或重新登录');
                 logintip.css('color', '#c30000')
             } else {
                 logintip.html('您已绑定邮箱账号:' + uinfo.mail + '，ID：' + uinfo.id);
@@ -593,11 +597,12 @@ require(['jquery', 'bootstrap', 'swal', 'toastr', 'md5', 'piejs'], function ($, 
     grpLogin.appendTo(pieBox);
     grpLogin.hide().fadeIn(1000);
 
-    var icpdiv = $('<div style="font-size:12px;color:#666;text-align:center"></div').appendTo(bd);
-    icpdiv.css({
-        'padding': '2em',
+    //bottom
+    var botGrp = $('<div class="col-md-12">- Powered by jscodepie.com -</div>').appendTo(pieBox);
+    botGrp.css({
         'text-align': 'center',
-        'width': '100%',
-    });
-    $('<a class="glyphicon" href="http://www.miitbeian.gov.cn">[苏ICP备15036923号-2]</a>').appendTo(icpdiv);
+        'color': '#AAA',
+        'margin': '2em 0',
+        'font-size': '0.8em'
+    })
 });
