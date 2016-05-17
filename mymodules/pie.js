@@ -260,16 +260,17 @@ _rotr.apis.getPieInfoByPuidPnm = function () {
         var uid = ctx.ginfo.uid;
 
         var name = ctx.query.name || ctx.request.body.name;
-        if (!name || !_cfg.regx.pieName.test(name)) throw Error('Pie name format error.');
+        console.log('>>',name);
+        if (!name || !_cfg.regx.pieName.test(name)) throw Error('应用名称格式错误.');
 
         var authid = ctx.query.uid || ctx.request.body.uid;
-        if (authid && !_cfg.regx.int.test(authid)) throw Error('Author ID format error.');
+        if (authid && !_cfg.regx.int.test(authid)) throw Error('作者编号格式错误.');
         if (!authid) authid = uid;
 
         //找到pid
         var ppath = authid + '/' + name;
         var pid = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.path:pie.id', ppath);
-        if (!pid) throw Error('Can not find the pie id [' + ppath + ']');
+        if (!pid) throw Error('找不到这个应用的信息[' + ppath + ']');
 
         var res = yield getPieInfoByPidCo(pid);
         res.power = (res.uid == uid) ? 'author' : 'usr';
@@ -292,7 +293,7 @@ _rotr.apis.getPieInfoByPid = function () {
         var uid = ctx.ginfo.uid;
 
         var thepid = ctx.query.id || ctx.request.body.id;
-        if (!thepid || !_cfg.regx.int.test(thepid)) throw Error('Pie id format error.');
+        if (!thepid || !_cfg.regx.int.test(thepid)) throw Error('应用ID格式错误.');
 
         var res = yield getPieInfoByPidCo(thepid);
         //加入权限写入

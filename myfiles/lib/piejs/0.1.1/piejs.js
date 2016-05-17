@@ -34,14 +34,16 @@ define(['jquery', 'soketio'], function ($, soketio) {
         pw: /^[0-9a-z]{8,32}$/, //8位验证码或者32位hex
         nick: /^.{1,32}$/, //1～32位非回车
         sex: /^[012]{1}$/, //0,1,2
-        pieName: /[0-9a-zA-Z\.]{3,32}/, //必须英文，但可以用点
+        pieName: /^[a-zA-Z\u0391-\uFFE5]+[0-9a-zA-Z\u0391-\uFFE5\.]{2,12}$/, //中英文至少3个字符，不能数字开头，可以有点
     };
 
     //从地址栏获取参数
     piejs.getUrlParam = function (name) {
         var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
         var r = window.location.search.substr(1).match(reg);
-        if (r != null) return unescape(r[2]);
+        if (r != null) {
+            return decodeURI(r[2]);
+        };
         return null;
     };
 

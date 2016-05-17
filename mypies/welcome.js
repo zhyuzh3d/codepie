@@ -29,8 +29,12 @@ require.config({
 
 /*实际函数运行*/
 require(['jquery', 'bootstrap', 'toastr', 'swal'], function ($, bootstrap, toastr, swal) {
-    var bd = $('#pieBox');
-    var tmp = bd.children('#_pieTemp');
+    $('head').append('<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">')
+
+    var piebox = $('#pieBox');
+    piebox.attr('class', 'row');
+    piebox.css('margin', '0');
+    var tmp = piebox.children('#_pieTemp');
     tmp.fadeOut(200, function () {
         tmp.remove();
     });
@@ -62,7 +66,7 @@ require(['jquery', 'bootstrap', 'toastr', 'swal'], function ($, bootstrap, toast
             var outbtn = $('<a class="pull-right" style="cursor:pointer">注销</a>').appendTo(cardhd);
             var loglink = $('<a class="pull-right" style="cursor:pointer;margin-right:1em">登录</a>').appendTo(cardhd);
             loglink.attr('href', 'http://' + location.host + '/pie/login?tab=login');
-                (uinfo.mail) ? tttxt.html('您的派证件') : tttxt.html('您的临时通行证');
+            (uinfo.mail) ? tttxt.html('您的派证件'): tttxt.html('您的临时通行证');
             outbtn.click(function () {
                 var api = 'http://' + location.host + '/api/logout';
                 $.post(api, {}, function (res) {
@@ -136,10 +140,10 @@ require(['jquery', 'bootstrap', 'toastr', 'swal'], function ($, bootstrap, toast
 
         return grp;
     }();
-    grpStart.appendTo(bd);
+    grpStart.appendTo(piebox);
     grpStart.hide().fadeIn(1000);
 
-    var icpdiv = $('<div style="font-size:12px;color:#666;text-align:center"></div').appendTo(bd);
+    var icpdiv = $('<div style="font-size:12px;color:#666;text-align:center"></div').appendTo(piebox);
     icpdiv.css({
         'padding': '2em',
         'text-align': 'center',

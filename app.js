@@ -16,6 +16,7 @@ var $koa = global.$koa = require('koa');
 var $bodyParser = global.$bodyParser = require('koa-bodyparser');
 var $sktio = global.$sktio = require('socket.io');
 var $router = global.$router = require('koa-router');
+var $gzip = global.$gzip = require('koa-gzip');
 var $filesvr = global.$filesvr = require('koa-file-server');
 var $redis = global.$redis = require('redis');
 var $co = global.$co = require('co');
@@ -75,6 +76,9 @@ httpSvr.on('listening', function (err) {
         hasinit = true;
     };
 });
+
+//开启gzip
+koaSvr.use($gzip());
 
 //静态文件目录
 koaSvr.use($filesvr({

@@ -3,7 +3,10 @@ require.config({
     paths: {
         jquery: 'http://' + window.location.host + '/lib/jquery/2.2.1/jquery.min',
         piejs: 'http://' + window.location.host + '/lib/piejs/0.1.1/piejs',
+        bootstrap: 'http://' + window.location.host + '/lib/bootstrap/3.3.6/bootstrap.min',
         cm: 'http://' + window.location.host + '/lib/codemirror/5.12.0',
+        swal: 'http://' + window.location.host + '/lib/sweetalert/1.1.3/sweetalert.min',
+        toastr: 'http://' + window.location.host + '/lib/toastr.js/latest/toastr.min',
     },
     map: {
         '*': {
@@ -15,61 +18,83 @@ require.config({
             deps: ['css!http://' + window.location.host + '/lib/codemirror/5.12.0/lib/codemirror.css',
                    'css!http://' + window.location.host + '/lib/codemirror/5.12.0/addon/hint/show-hint.css']
         },
+        bootstrap: {
+            deps: ['css!http://' + window.location.host + '/lib/bootstrap/3.3.6/bootstrap.min.css',
+                   'css!http://' + window.location.host + '/lib/bootstrap/3.3.6/bootstrap-theme.min.css',
+                 'http://' + window.location.host + '/lib/jquery/2.2.1/jquery.min.js']
+        },
+        swal: {
+            deps: ['css!http://' + window.location.host + '/lib/sweetalert/1.1.3/sweetalert.min.css']
+        },
+        toastr: {
+            deps: ['css!http://' + window.location.host + '/lib/toastr.js/latest/toastr.min.css']
+        },
     },
 });
 
 var modarr = ['jquery',
               'piejs',
+              'swal',
+              'toastr',
               'cm/lib/codemirror',
               'cm/addon/hint/show-hint',
               'cm/addon/hint/javascript-hint',
-              'cm/mode/javascript/javascript'];
+              'cm/mode/javascript/javascript',
+              'bootstrap',
+             ];
 
 
-require(modarr, function ($, piejs, CodeMirror) {
+require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
+    $('head').append('<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">');
+
     $('body').css('margin', '0');
-    var bd = $('#pieBox');
-    var tmp = bd.children('#_pieTemp');
-    tmp.remove();
+    var pieBox = $('#pieBox');
+    pieBox.attr('class', 'row');
+    pieBox.css('margin', '0');
+    var tmp = pieBox.children('#_pieTemp');
+    tmp.fadeOut(200, function () {
+        tmp.remove();
+    });
+
 
     //获取当前用户基本信息
-    var usrProfile;
+    var uinfo;
     $.post('../api/getMyProfile', function (msg) {
         if (msg && msg.code == 1) {
-            usrProfile = msg.data;
+            uinfo = msg.data;
         };
     });
 
     //获取地址栏参数
     var appname = piejs.getUrlParam('pname');
     var authid = piejs.getUrlParam('puid');
+    if (appname) {
+        $('head').find('title').html(appname + '-' + 'PieEditor');
+    };
 
 
     //按钮组
     var appurl;
-    var btngrp = function () {
-        var grp = $('<div id="btngrp"></div>').appendTo(bd);
-        grp.css({
-            'position': 'fixed',
-            'top': '0',
-            'padding': '8px',
-            'background': '#EEE',
-            'height': '24px',
-            'width': '100%',
-            'z-index': '99',
-            'border-bottom': '1px solid #CCC'
-        })
+
+    var btngrp = function genbtngrp() {
+        var grp = $('<nav class="navbar navbar-default navbar-fixed-top"></div>').appendTo(pieBox);
+        var navctn = $('<div class="container col-md-12" style="white-space:nowrap"></div>').appendTo(grp);
+
+        //返回首页
+        var hmlink = $('<a target="_blank" class="btn" style="margin-right:8px"> 列表</a>').appendTo(navctn);
+        hmlink.attr('href', '../pie/start');
+        $('<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>').prependTo(hmlink);
 
         //保存按钮
-        var savebtn = $('<button style="padding:4px 8px">保存</button>').appendTo(grp);
+        var savebtn = $('<button class="btn btn-success navbar-btn btn-sm" style="margin-right:8px"> 保存</button>').appendTo(navctn);
+        $('<span class="glyphicon glyphicon-save" aria-hidden="true"></span>').prependTo(savebtn);
         grp.saveBtn = savebtn;
-        savebtn.css('margin-right', '6px');
         savebtn.hide();
 
         savebtn.click(function () {
             //计算文件key
-            if (appurl && usrProfile) {
-                var uid = usrProfile.id;
+            if (appurl && uinfo) {
+                var uid = uinfo.id;
                 var urlpre = 'http://files.jscodepie.com/' + uid + '/';
                 if (appurl.indexOf(urlpre) == 0) {
                     var file = appurl.substr(urlpre.length);
@@ -77,15 +102,15 @@ require(modarr, function ($, piejs, CodeMirror) {
                         data: editorGrp.editor.doc.getValue(),
                         file: file,
                     };
-                    grp.tipdiv.show().html('uploading...')
+                    grp.tipdiv.show().html('uploading...');
+                    savebtn.attr('disabled', true);
                     $.post("../api/uploadData", data, function (res) {
                         grp.tipdiv.show().html('upload ok!');
-                        grp.tipdiv.fadeOut(1000, function () {
-                            console.log('>>>prepare skt', piejs.sktFamily.length);
+                        savebtn.attr('disabled', false);
+                        grp.tipdiv.fadeOut(500, function () {
                             //向所有从属端发送更新命令
                             for (var n = 0; n < piejs.sktFamily.length; n++) {
                                 var sinfo = piejs.sktFactory[piejs.sktFamily[n]];
-                                console.log('>>>prepare skt', sinfo);
                                 if (sinfo && sinfo.state == 1) {
                                     var dat = {
                                         tar: sinfo,
@@ -96,38 +121,36 @@ require(modarr, function ($, piejs, CodeMirror) {
                                         id: piejs.uniqueId(),
                                         time: Number(new Date()),
                                     };
-                                    console.log('>>>send cmd', dat);
                                     piejs.sktio.emit('transSmsg', dat);
                                 };
                             };
                         });
                     });
                 } else {
-                    alert('File path err:' + appurl);
+                    swal({
+                        type: 'warning',
+                        title: '',
+                        text: '文件路径错误,请返回首页重试',
+                    });
                 };
             };
         });
 
         //预览按钮，新窗口打开，editorSid='',autoReload=true
-        var previewA = $('<a target="_blank"></a>').appendTo(grp);
-        var previewBtn = $('<button style="padding:4px 8px">预览</button>').appendTo(previewA);
+        var previewA = $('<a target="_blank" class="btn btn-success navbar-btn btn-sm" style="margin-right:8px"> 预览</a>').appendTo(navctn);
+        $('<span class="glyphicon glyphicon-fire" aria-hidden="true"></span>').prependTo(previewA);
         grp.previewA = previewA;
-        previewA.css('margin-right', '12px');
         previewA.hide();
 
         piejs.sktio.afterCheckinFnArr.push(function () {
             var sinfo = piejs.sktio.sktInfo;
-            //var prevurl = appname + '?parentSid=' + sinfo.sid + '&autoCmd=true';
             var prevurl = appname + '?parentUid=' + sinfo.uid + '&parentPid=' + sinfo.pid + '&autoCmd=true';
             previewA.attr('href', prevurl);
         });
 
         //app名称
-        grp.titleSpan = $('<span style="color:#888"></span>').appendTo(grp);
-        grp.apptitle = $('<span>...</span>').appendTo(grp.titleSpan);
+        grp.titleSpan = $('<span style="color:#888;"></span>').appendTo(navctn);
         grp.appurl = $('<span>...</span>').appendTo(grp.titleSpan);
-
-        grp.apptitle.html('[ ' + appname + ' ]');
 
         //错误提示行
         var tipdiv = grp.tipdiv = $('<div style="color:#D00;font-size:14px">..up;loading.</div>').appendTo(grp);
@@ -145,16 +168,13 @@ require(modarr, function ($, piejs, CodeMirror) {
 
 
 
-
-    //---------编辑器部分
-    var editorGrp = function () {
-        var grp = $('<div id="editorGrp"></div>').appendTo(bd);
+    //编辑器部分
+    var editorGrp = function geneditorgrp() {
+        var grp = $('<div id="editorGrp"></div>').appendTo(pieBox);;
         grp.css({
-            'margin-top': '40px',
+            'margin-top': '50px',
             'z-index': 0,
         });
-
-
 
         //编辑器,alt键hint
         var codeta = grp.ta = $('<textarea id="code">...loading...</textarea>').appendTo(grp);
@@ -172,10 +192,10 @@ require(modarr, function ($, piejs, CodeMirror) {
         });
 
         //调整codemirror样式
-        $('<style>.CodeMirror{height:auto}</style>').appendTo(bd);
+        $('<style>.CodeMirror{height:auto}</style>').appendTo(grp);
 
         //先获取目标app的js文件路径，
-        var tarapi = '../api/getPieInfoByPuidPnm?name=' + appname;
+        var tarapi = 'http://' + location.host + '/api/getPieInfoByPuidPnm?name=' + appname;
         if (authid) tarapi += '&uid=' + authid;
 
         $.post(tarapi, function (msg) {
@@ -203,7 +223,6 @@ require(modarr, function ($, piejs, CodeMirror) {
         });
         return grp;
     }();
-
 
 });
 

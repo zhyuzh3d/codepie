@@ -31,7 +31,11 @@ require.config({
 
 /*实际函数运行*/
 require(['jquery', 'bootstrap', 'swal', 'toastr', 'md5', 'piejs'], function ($, bootstrap, swal, toastr, md5, piejs) {
+    $('head').append('<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">')
+
     var pieBox = $('#pieBox');
+    pieBox.attr('class', 'row');
+    pieBox.css('margin', '0');
     var tmp = pieBox.children('#_pieTemp');
     tmp.fadeOut(200, function () {
         tmp.remove();
@@ -40,9 +44,9 @@ require(['jquery', 'bootstrap', 'swal', 'toastr', 'md5', 'piejs'], function ($, 
 
     var topNavbar;
     var genNavbar = function () {
-        var navbar = $('<div class="row breadcrumb" style="margin:0;border-radius:0"></div>');
-        var backbtn = $('<li class="btn" style="padding:0">返回</li>').appendTo(navbar);
-        var homebtn = $('<li class="btn" style="padding:0">首页</li>').appendTo(navbar);
+        var navbar = $('<div class="row breadcrumb navbar navbar-default" style="margin:0;border-radius:0"></div>');
+        var backbtn = $('<li class="btn navbar-btn" style="padding:0">返回</li>');
+        var homebtn = $('<li class="btn navbar-btn" style="padding:0">首页</li>').appendTo(navbar);
         var refreshbtn = $('<li class="btn" style="padding:0">绑定与登录</li>').appendTo(navbar);
         backbtn.click(function () {
             window.location.href = document.referrer;
@@ -61,7 +65,7 @@ require(['jquery', 'bootstrap', 'swal', 'toastr', 'md5', 'piejs'], function ($, 
     var grpLogin = function () {
         var grp = $('<div class="row" style="margin:2em 0;"></div>');
         var grpbox = $('<div></div>').appendTo(grp);
-        grpbox.addClass('col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2 col-xs-10 col-xs-offset-1');
+        grpbox.addClass('col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2 col-xs-12');
 
 
         var navgrp = $('<ul class="nav nav-tabs" role="tablist"></ul>').appendTo(grpbox);

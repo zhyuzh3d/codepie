@@ -28,6 +28,8 @@ require.config({
 
 /*实际函数运行*/
 require(['jquery', 'bootstrap', 'swal', 'toastr'], function ($, bootstrap, swal, toastr) {
+    $('head').append('<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">')
+
     var pieBox = $('#pieBox');
     pieBox.attr('class', 'row');
     pieBox.css('margin', '0');
@@ -39,10 +41,10 @@ require(['jquery', 'bootstrap', 'swal', 'toastr'], function ($, bootstrap, swal,
 
     var topNavbar;
     var genNavbar = function () {
-        var navbar = $('<div class="row breadcrumb" style="margin:0;border-radius:0"></div>');
-        var backbtn = $('<li class="btn" style="padding:0">返回</li>').appendTo(navbar);
-        var homebtn = $('<li class="btn" style="padding:0">首页</li>').appendTo(navbar);
-        var refreshbtn = $('<li class="btn" style="padding:0">我的应用列表</li>').appendTo(navbar);
+        var navbar = $('<div class="row breadcrumb navbar navbar-default" style="margin:0;border-radius:0"></div>');
+        var backbtn = $('<li class="btn navbar-btn" style="padding:0">返回</li>');
+        var homebtn = $('<li class="btn navbar-btn" style="padding:0">首页</li>').appendTo(navbar);
+        var refreshbtn = $('<li class="btn navbar-btn" style="padding:0">我的应用列表</li>').appendTo(navbar);
         backbtn.click(function () {
             window.location.href = document.referrer;
         });
@@ -57,7 +59,6 @@ require(['jquery', 'bootstrap', 'swal', 'toastr'], function ($, bootstrap, swal,
     };
 
     var grpStart = function () {
-        $('head').append('<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">')
 
         //layout
         var pieGrp = $('<div id="pieGrp" class="container col-sm-12 col-md-10 col-md-offset-1"></div>').appendTo(pieBox);
@@ -74,8 +75,8 @@ require(['jquery', 'bootstrap', 'swal', 'toastr'], function ($, bootstrap, swal,
         addBtn.click(function () {
             //弹出输入名称的窗口
             swal({
-                title: "请输入应用名称",
-                text: 'Write something interesting:',
+                title: "",
+                text: '请输入一个有趣的应用名称',
                 type: 'input',
                 showCancelButton: true,
                 closeOnConfirm: true,
