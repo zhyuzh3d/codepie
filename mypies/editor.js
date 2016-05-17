@@ -68,6 +68,7 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
     //获取地址栏参数
     var appname = piejs.getUrlParam('pname');
     var authid = piejs.getUrlParam('puid');
+    var fullappnm = authid + '/' + appname;
     if (appname) {
         $('head').find('title').html(appname + '-' + 'PieEditor');
     };
@@ -78,12 +79,15 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
 
     var btngrp = function genbtngrp() {
         var grp = $('<nav class="navbar navbar-default navbar-fixed-top"></div>').appendTo(pieBox);
-        var navctn = $('<div class="container col-md-12" style="white-space:nowrap"></div>').appendTo(grp);
+        var navctn = $('<div class="container col-xs-12 col-sm-12 col-md-12" style="white-space:nowrap;padding-left:0"></div>').appendTo(grp);
 
         //返回首页
-        var hmlink = $('<a target="_blank" class="btn" style="margin-right:8px"> 列表</a>').appendTo(navctn);
-        hmlink.attr('href', '../pie/start');
+        var hmlink = $('<a target="_blank" class="btn" style="margin-right:8px"> 返回</a>').appendTo(navctn);
         $('<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>').prependTo(hmlink);
+        //hmlink.attr('href', '../pie/start');
+        hmlink.click(function () {
+            window.location.href = document.referrer;
+        });
 
         //保存按钮
         var savebtn = $('<button class="btn btn-success navbar-btn btn-sm" style="margin-right:8px"> 保存</button>').appendTo(navctn);
@@ -142,24 +146,30 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
         grp.previewA = previewA;
         previewA.hide();
 
-        piejs.sktio.afterCheckinFnArr.push(function () {
+
+        function setpreva() {
             var sinfo = piejs.sktio.sktInfo;
-            var prevurl = appname + '?parentUid=' + sinfo.uid + '&parentPid=' + sinfo.pid + '&autoCmd=true';
-            previewA.attr('href', prevurl);
-        });
+            var prevurl = fullappnm + '?parentUid=' + sinfo.uid + '&parentPid=' + sinfo.pid + '&autoCmd=true';
+            previewA.attr('href', 'http://' + location.host + '/pie/' + prevurl);
+        }
+        if (piejs.sktio.hasCheckin) {
+            setpreva();
+        };
+        piejs.sktio.afterCheckinFnArr.push(setpreva);
+
 
         //app名称
         grp.titleSpan = $('<span style="color:#888;"></span>').appendTo(navctn);
         grp.appurl = $('<span>...</span>').appendTo(grp.titleSpan);
 
         //错误提示行
-        var tipdiv = grp.tipdiv = $('<div style="color:#D00;font-size:14px">..up;loading.</div>').appendTo(grp);
+        var tipdiv = grp.tipdiv = $('<div style="color:#D00;font-size:0.75em">...</div>').appendTo(grp);
         tipdiv.css({
             'background': '#94EE77',
             'padding': '4px 8px',
             'color': '#164',
-            'margin-left': '-8px',
-            'margin-top': '12px'
+            'margin-left': '0px',
+            'margin-top': '50px'
         })
         tipdiv.hide();
 
@@ -197,12 +207,16 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
         //先获取目标app的js文件路径，
         var tarapi = 'http://' + location.host + '/api/getPieInfoByPuidPnm?name=' + appname;
         if (authid) tarapi += '&uid=' + authid;
+        var epinfo;
 
         $.post(tarapi, function (msg) {
             if (msg.code != 1) {
                 console.log('>getPieInfoByPuidPnm failed:' + msg.text);
                 return;
             };
+
+            epinfo = msg.data;
+
             //如果是author，显示savebtn
             if (piejs.usrPower[msg.data.power] >= piejs.usrPower.author) {
                 btngrp.saveBtn.show();

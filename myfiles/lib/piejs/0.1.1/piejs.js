@@ -99,7 +99,7 @@ define(['jquery', 'soketio'], function ($, soketio) {
 
     //以下skt相关------
     //启动socketio,获取自身sid后执行afterCheckin队列的函数
-    var sktio = piejs.sktio = soketio.connect(window.location.host);
+    var sktio = piejs.sktio = soketio.connect('http://'+location.host);
     sktio.afterCheckinFnArr = [];
     sktio.sktInfo = [];
 
@@ -155,8 +155,9 @@ define(['jquery', 'soketio'], function ($, soketio) {
     //首次链接返回信息处理
     sktio.on('_checkin', sktCheckin);
 
+    piejs.sktio.hasCheckin = false;
+
     function sktCheckin(msg) {
-        console.log('Connect to jscodepie skts:', msg);
         if (msg.data && msg.data.sid) {
             sktio.sktInfo = msg.data;
             var fns = sktio.afterCheckinFnArr;
@@ -172,6 +173,7 @@ define(['jquery', 'soketio'], function ($, soketio) {
                     };
                 };
             };
+            piejs.sktio.hasCheckin = true;
         } else {
             console.log('Skt _checkin failed:', msg);
         };
@@ -338,7 +340,7 @@ define(['jquery', 'soketio'], function ($, soketio) {
             time: Number(new Date()),
             id: piejs.uniqueId(),
         };
-        console.log('>>>send _joinFamily', dt);
+        //console.log('>>>send _joinFamily', dt);
         sktio.emit('transSmsg', dt);
         piejs.addSktCb(dt, function (res, dat) {
             console.log(res.data.text);

@@ -31,7 +31,7 @@ require.config({
 
 /*实际函数运行*/
 require(['jquery', 'bootstrap', 'swal', 'toastr', 'md5', 'piejs'], function ($, bootstrap, swal, toastr, md5, piejs) {
-    $('head').append('<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">')
+    $('head').append('<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">');
 
     var pieBox = $('#pieBox');
     pieBox.attr('class', 'row');

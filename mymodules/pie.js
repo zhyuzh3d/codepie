@@ -123,10 +123,10 @@ _pie.getPieListCo = getPieListCo;
 
 function getPieListCo(uid) {
     var co = $co(function* () {
-            //拿到set列表
-            var usrkey = 'usr-' + uid;
-            var setkey = yield _ctnu([_rds.cli, 'hget'], usrkey, 'pieSetKey');
-            if (!setkey) return '您还没有创建应用.';
+        //拿到set列表
+        var usrkey = 'usr-' + uid;
+        var setkey = yield _ctnu([_rds.cli, 'hget'], usrkey, 'pieSetKey');
+        if (!setkey) return '您还没有创建应用.';
 
         var pidarr = yield _ctnu([_rds.cli, 'smembers'], setkey);
         if (!pidarr || pidarr.length < 1) return '应用列表为空.';
@@ -147,7 +147,7 @@ function getPieListCo(uid) {
 
         return res;
     });
-return co;
+    return co;
 };
 
 
@@ -260,7 +260,6 @@ _rotr.apis.getPieInfoByPuidPnm = function () {
         var uid = ctx.ginfo.uid;
 
         var name = ctx.query.name || ctx.request.body.name;
-        console.log('>>',name);
         if (!name || !_cfg.regx.pieName.test(name)) throw Error('应用名称格式错误.');
 
         var authid = ctx.query.uid || ctx.request.body.uid;
@@ -372,11 +371,12 @@ _pie.getPinfoByUrl = getPinfoByUrl;
 
 function getPinfoByUrl(url) {
     var url = url.split("?")[0];
-    var hsturl = _app.hostUrl + '/pie/';
-    var pname = url.substr(hsturl.length);
+    var spos = url.indexOf('/pie/');
+    var pname = (spos != -1) ? url.substr(spos + 5) : undefined;
     if (pname == '') pname = undefined;
     var puid;
     if (pname) {
+        //如果没有uid，补足1
         var slashpos = pname.indexOf('/');
         if (slashpos == -1) {
             puid = 1;

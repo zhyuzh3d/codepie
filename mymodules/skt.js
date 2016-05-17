@@ -43,7 +43,6 @@ function startFn(skt) {
         _rds.cli.zadd('_map:skt.id:usr.id', uid, sid);
         _rds.cli.zadd('_map:skt.id:pie.id', pid, sid);
         _rds.cli.hset('_map:skt.path:skt.id', uid + '/' + pid, sid);
-        //console.log('>>add a sktid', sid, uid, pid, pname);
 
         //断开时删除rds数据库
         skt.on('disconnect', function () {
@@ -56,11 +55,12 @@ function startFn(skt) {
         };
 
         //发送欢迎信息
-        skt.emit('_checkin', __newMsg(1, 'Welcome to jscodepie skts!', {
+        var ckindt = {
             sid: sid,
             uid: uid,
             pid: pid,
-        }));
+        };
+        skt.emit('_checkin', __newMsg(1, 'Welcome to jscodepie skts!', ckindt));
     }).then(null, function (err) {
         skt.emit('_checkin', __newMsg(0, err));
     });

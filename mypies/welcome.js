@@ -29,7 +29,7 @@ require.config({
 
 /*实际函数运行*/
 require(['jquery', 'bootstrap', 'toastr', 'swal'], function ($, bootstrap, toastr, swal) {
-    $('head').append('<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">')
+    $('head').append('<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">');
 
     var piebox = $('#pieBox');
     piebox.attr('class', 'row');
@@ -46,18 +46,37 @@ require(['jquery', 'bootstrap', 'toastr', 'swal'], function ($, bootstrap, toast
     };
 
     var grpStart = function () {
-        var grp = $('<div class="row" style="margin:10% 0;text-align:center"></div>');
+        var grp = $('<div class="row" style="margin:5% 0;text-align:center"></div>');
+
+        //欢迎组
         var welgrp = $('<div style="margin:1em 0;text-align:center"></div>').appendTo(grp);
         var weltxt = ($('<div style="font-size:1.2em">欢迎来到［代码派］！</div>')).appendTo(welgrp);
         var weletxt = ($('<div style="font-size:0.8em">welcome to jscodepie.com！</div>')).appendTo(welgrp);
 
+        //格言组
+        var mottogrp = $('<div style="margin:1em 0;text-align:center"></div>').appendTo(grp);
+        mottogrp.css({
+            'background': '#CCC',
+            'color': '#FFF',
+            'padding': '0.5em 0 1em 0'
+        })
+        var mttxt = ($('<div style="font-size:2.5em">相信你自己</div>')).appendTo(mottogrp);
+        var mtetxt = ($('<div style="font-size:0.95em">BELIEVE IN WHO YOU ARE</div>')).appendTo(mottogrp);
+
         var uinfo;
 
-        var cardln = $('<div class="row" style="margin:0"></div>').appendTo(grp);
+        //开始按钮
+        var lnstart = $('<div style="margin-top:2em"></div>').appendTo(grp);
+        var startBtn = $('<a class="btn btn-success btn-lg">立即开始</a>').appendTo(lnstart);
+        startBtn.css('padding', '0.5em 3em');
+        startBtn.attr('href', 'http://' + location.host + '/app/start');
+
+        //卡片组
+        var cardln = $('<div class="row" style="margin:2em 0"></div>').appendTo(grp);
         var cardpnl = $('<div class="panel panel-default "></div>').appendTo(cardln);
 
         function fillcard() {
-            cardpnl.addClass('col-xs-10 col-xs-offset-1 col-sm-8 col-sm-offset-2 col-md-6 col-md-offset-3');
+            cardpnl.addClass('col-xs-10 col-xs-offset-1 col-sm-6 col-sm-offset-3 col-md-4 col-md-offset-4');
             cardpnl.css({
                 'padding': '0'
             })
@@ -115,11 +134,7 @@ require(['jquery', 'bootstrap', 'toastr', 'swal'], function ($, bootstrap, toast
         };
 
 
-        //startbtn
-        var lnstart = $('<div style="margin-top:1em"></div>').appendTo(grp);
-        var startBtn = $('<a class="btn btn-success">立即开始</a>').appendTo(lnstart);
-        startBtn.css('padding', '0.5em 3em');
-        startBtn.attr('href', 'http://' + location.host + '/app/start');
+
 
 
         //读取用户信息，判断是否要登录
@@ -150,4 +165,13 @@ require(['jquery', 'bootstrap', 'toastr', 'swal'], function ($, bootstrap, toast
         'width': '100%',
     });
     $('<a class="glyphicon" href="http://www.miitbeian.gov.cn">[苏ICP备15036923号-2]</a>').appendTo(icpdiv);
+
+    //bottom
+    var botGrp = $('<div class="col-md-12">- Powered by jscodepie.com -</div>').appendTo(pieBox);
+    botGrp.css({
+        'text-align': 'center',
+        'color': '#AAA',
+        'margin': '0',
+        'font-size': '0.8em'
+    })
 });

@@ -28,7 +28,7 @@ require.config({
 
 /*实际函数运行*/
 require(['jquery', 'bootstrap', 'swal', 'toastr'], function ($, bootstrap, swal, toastr) {
-    $('head').append('<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">')
+    $('head').append('<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">');
 
     var pieBox = $('#pieBox');
     pieBox.attr('class', 'row');
@@ -44,7 +44,7 @@ require(['jquery', 'bootstrap', 'swal', 'toastr'], function ($, bootstrap, swal,
         var navbar = $('<div class="row breadcrumb navbar navbar-default" style="margin:0;border-radius:0"></div>');
         var backbtn = $('<li class="btn navbar-btn" style="padding:0">返回</li>');
         var homebtn = $('<li class="btn navbar-btn" style="padding:0">首页</li>').appendTo(navbar);
-        var refreshbtn = $('<li class="btn navbar-btn" style="padding:0">我的应用列表</li>').appendTo(navbar);
+        var refreshbtn = $('<li class="btn navbar-btn" style="padding:0">开始</li>').appendTo(navbar);
         backbtn.click(function () {
             window.location.href = document.referrer;
         });
@@ -76,11 +76,12 @@ require(['jquery', 'bootstrap', 'swal', 'toastr'], function ($, bootstrap, swal,
             //弹出输入名称的窗口
             swal({
                 title: "",
-                text: '请输入一个有趣的应用名称',
+                text: '<p>请输入一个有趣的应用名称<p><p style="font-size:0.75em;margin-top:0.5em">中英文都可以，但不要用数字开头</p>',
                 type: 'input',
                 showCancelButton: true,
                 closeOnConfirm: true,
-                animation: "slide-from-top"
+                animation: "slide-from-top",
+                html: true,
             }, function (val) {
                 //创建pie
                 if (val === false) return;
