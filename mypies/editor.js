@@ -78,9 +78,10 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
 
     //按钮组
     var appurl;
+    var lastSaveValue;
 
     var btngrp = function genbtngrp() {
-        var grp = $('<nav class="navbar navbar-default navbar-fixed-top"></div>').appendTo(pieBox);
+        var grp = $('<nav class="navbar navbar-default navbar-fixed-bottom"></div>').appendTo(pieBox);
         var navctn = $('<div class="container col-xs-12 col-sm-12 col-md-12" style="white-space:nowrap;padding-left:0"></div>').appendTo(grp);
 
         //返回首页
@@ -88,12 +89,27 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
         $('<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>').prependTo(hmlink);
         //hmlink.attr('href', '../pie/start');
         hmlink.click(function () {
-            window.location.href = document.referrer;
+            if (editorGrp.editor.doc.getValue() == lastSaveValue) {
+                window.location.href = document.referrer;
+            } else {
+                swal({
+                    type: 'warning',
+                    title: '',
+                    text: '您的代码还没保存，是否要放弃未保存的修改？',
+                    showCancelButton: true,
+                    confirmButtonText: '取消',
+                    cancelButtonText: '不保存',
+                }, function (sel) {
+                    if (!sel) {
+                        window.location.href = document.referrer;
+                    };
+                });
+            };
         });
 
         //保存按钮
         var savebtn = $('<button class="btn btn-success navbar-btn btn-sm" style="margin-right:8px"> 保存</button>').appendTo(navctn);
-        $('<span class="glyphicon glyphicon-save" aria-hidden="true"></span>').prependTo(savebtn);
+        $('<span class="glyphicon glyphicon-cloud-upload" aria-hidden="true"></span>').prependTo(savebtn);
         grp.saveBtn = savebtn;
         savebtn.hide();
 
@@ -108,10 +124,13 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
                         data: editorGrp.editor.doc.getValue(),
                         file: file,
                     };
-                    grp.tipdiv.show().html('uploading...');
+                    grp.tipdiv.show().html('正在上传，请稍后...');
                     savebtn.attr('disabled', true);
                     $.post("../api/uploadData", data, function (res) {
-                        grp.tipdiv.show().html('upload ok!');
+                        //记录上次保存内容，返回按钮检查是否已经保存
+                        lastSaveValue = data.data;
+
+                        grp.tipdiv.show().html('上传成功!');
                         savebtn.attr('disabled', false);
                         grp.tipdiv.fadeOut(500, function () {
                             //向所有从属端发送更新命令
@@ -160,7 +179,7 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
 
 
         //插入按钮
-        var nstbtn = $('<button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#nstModal">  插入</button>').appendTo(navctn);
+        var nstbtn = $('<button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#nstModal">  插入图片或符号</button>').appendTo(navctn);
         $('<span class="glyphicon glyphicon-leaf" aria-hidden="true"></span>').prependTo(nstbtn);
 
 
@@ -179,11 +198,13 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
         var nstmduploads = $('<div class=""></div>').appendTo(nstmdbd);
         var nstpicbtn = $('<a target="_blank" class="btn btn-success navbar-btn" style="margin-right:8px"><span class="glyphicon glyphicon-picture" aria-hidden="true"></span> 插入图片</a>').appendTo(nstmdbd);
         nstpicbtn.click(function () {
+            nstmdcls.click();
             iptfile.attr('accept', '.png,.jpg,.jpeg,.gif');
             iptfile.click();
         });
         var nstfilebtn = $('<a target="_blank" class="btn btn-success navbar-btn" style="margin-right:8px"><span class="glyphicon glyphicon-file" aria-hidden="true"></span> 插入图片</a>').appendTo(nstmdbd);
         nstfilebtn.click(function () {
+            nstmdcls.click();
             iptfile.attr('accept', '.js,.json,.xml,.html,.css,.txt,.zip,.rar,.pdf,.mp4,.mov');
             iptfile.click();
         });
@@ -191,12 +212,24 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
         //弹窗，插入符号按钮,插入文件按钮
         var nstmdsigns = $('<div class=""></div>').appendTo(nstmdbd);
         var signarr = [];
-        signarr.push(';\n', '.', ',', '$', 'br');
-        signarr.push('\'', '\"', {
+        signarr.push(';\n', '.', ',', '$', {
+            sign: '$(\'\')',
+            cpos: 2
+        }, '/', 'br');
+        signarr.push({
+            sign: '\'\'',
+            cpos: 1
+        }, {
+            sign: '\"\"',
+            cpos: 1
+        }, {
             sign: '(  )',
             cpos: 2
         }, {
             sign: '{  }',
+            cpos: 2
+        }, {
+            sign: '<>',
             cpos: 2
         }, 'br');
         signarr.push('=', '==', '>', '<', '>=', '<=', 'br');
@@ -259,8 +292,6 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
         });
 
 
-
-
         //app名称
         //grp.titleSpan = $('<span style="color:#888;"></span>').appendTo(navctn);
         //grp.appurl = $('<span>...</span>').appendTo(grp.titleSpan);
@@ -268,9 +299,9 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
         //错误提示行
         var tipdiv = grp.tipdiv = $('<div style="color:#D00;font-size:0.75em">...</div>').appendTo(grp);
         tipdiv.css({
-            'background': '#94EE77',
+            'background': '#419641',
             'padding': '4px 8px',
-            'color': '#164',
+            'color': '#fff',
             'margin-left': '0px',
             'margin-top': '50px'
         });
@@ -280,12 +311,11 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
     }();
 
 
-
     //编辑器部分
     var editorGrp = function geneditorgrp() {
         var grp = $('<div id="editorGrp"></div>').appendTo(pieBox);;
         grp.css({
-            'margin-top': '50px',
+            'margin-top': '0px',
             'z-index': 0,
         });
 
@@ -304,17 +334,19 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
             },
         });
 
+
+
         //插入字符串的方法
         editor.insertStr = function (str, pos) {
             editor.doc.replaceSelection(str, 'around');
             var csrpos = editor.doc.getCursor('to');
             //调整后退鼠标位置
-            if (pos) {
+            if (pos != undefined) {
                 csrpos = editor.doc.getCursor();
                 csrpos.ch = csrpos.ch - pos;
             };
-            editor.doc.setCursor(csrpos);
             editor.focus();
+            editor.doc.setCursor(csrpos);
         };
 
         //调整codemirror样式
@@ -327,7 +359,7 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
 
         $.post(tarapi, function (msg) {
             if (msg.code != 1) {
-                console.log('>getPieInfoByPuidPnm failed:' + msg.text);
+                console.log('>获取应用信息失败:' + msg.text);
                 return;
             };
 
@@ -346,9 +378,10 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
             var urlts = appurl + '?ts=' + Number(new Date());
             $.get(urlts, function (dat) {
                 editorGrp.editor.doc.setValue(dat);
+                lastSaveValue = editorGrp.editor.doc.getValue();
             }, 'text').error(function (err) {
                 btngrp.tipdiv.show();
-                btngrp.tipdiv.html('Load failed:' + JSON.stringify(err));
+                btngrp.tipdiv.html('载入失败:' + JSON.stringify(err));
             });
         });
         return grp;
