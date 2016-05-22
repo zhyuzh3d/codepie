@@ -17,19 +17,20 @@ require.config({
     shim: {
         jquery: {
             deps: ['css!http://' + window.location.host + '/lib/codemirror/5.12.0/lib/codemirror.css',
-                   'css!http://' + window.location.host + '/lib/codemirror/5.12.0/addon/hint/show-hint.css']
+                   'css!http://' + window.location.host + '/lib/codemirror/5.12.0/addon/hint/show-hint.css',
+                   'css!http://' + window.location.host + '/lib/codemirror/5.12.0/addon/fold/foldgutter.css']
         },
         bootstrap: {
             deps: ['css!http://' + window.location.host + '/lib/bootstrap/3.3.6/bootstrap.min.css',
                    'css!http://' + window.location.host + '/lib/bootstrap/3.3.6/bootstrap-theme.min.css',
-                 'http://' + window.location.host + '/lib/jquery/2.2.1/jquery.min.js']
+                    'http://' + window.location.host + '/lib/jquery/2.2.1/jquery.min.js']
         },
         swal: {
             deps: ['css!http://' + window.location.host + '/lib/sweetalert/1.1.3/sweetalert.min.css']
         },
         toastr: {
             deps: ['css!http://' + window.location.host + '/lib/toastr.js/latest/toastr.min.css']
-        },
+        }
     },
 });
 
@@ -40,6 +41,11 @@ var modarr = ['jquery',
               'cm/lib/codemirror',
               'cm/addon/hint/show-hint',
               'cm/addon/hint/javascript-hint',
+              'cm/addon/fold/foldcode',
+              'cm/addon/fold/foldgutter',
+              'cm/addon/fold/brace-fold',
+              'cm/addon/edit/closebrackets',
+              'cm/addon/edit/matchbrackets',
               'cm/mode/javascript/javascript',
               'bootstrap',
               'jform'
@@ -331,9 +337,15 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
                 "Alt": function (cm) {
                     CodeMirror.showHint(cm, CodeMirror.hint.javascript);
                 },
+                "Ctrl-Q": function (cm) {
+                    cm.foldCode(cm.getCursor());
+                }
             },
+            foldGutter: true,
+            gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter", "CodeMirror-lint-markers"],
+            autoCloseBrackets: true,
+            lint:true,
         });
-
 
 
         //插入字符串的方法
