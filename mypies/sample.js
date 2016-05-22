@@ -825,6 +825,7 @@ define(['jquery', 'piejs', 'jform', 'qiniu', 'md5'], function ($, piejs, jform, 
                 fm.ajaxSubmit({
                     type: 'POST',
                     success: function (fileinfo) {
+                        console.log('upload.qiniu.com',fileinfo);
                         fileinfo.domain = res.data.domain;
                         fileinfo.url = fileinfo.domain + res.data.key;
                         reslink.html(fileinfo.url);

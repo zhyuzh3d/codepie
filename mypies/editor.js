@@ -7,6 +7,7 @@ require.config({
         cm: 'http://' + window.location.host + '/lib/codemirror/5.12.0',
         swal: 'http://' + window.location.host + '/lib/sweetalert/1.1.3/sweetalert.min',
         toastr: 'http://' + window.location.host + '/lib/toastr.js/latest/toastr.min',
+        jform: 'http://' + window.location.host + '/lib/jquery.form/3.51/jquery.form.min',
     },
     map: {
         '*': {
@@ -41,6 +42,7 @@ var modarr = ['jquery',
               'cm/addon/hint/javascript-hint',
               'cm/mode/javascript/javascript',
               'bootstrap',
+              'jform'
              ];
 
 
@@ -140,12 +142,11 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
             };
         });
 
-        //预览按钮，新窗口打开，editorSid='',autoReload=true
-        var previewA = $('<a target="_blank" class="btn btn-success navbar-btn btn-sm" style="margin-right:8px"> 预览</a>').appendTo(navctn);
+        //预览按钮，新窗口打开，parentUid='',parentPid='',autoReload=true
+        var previewA = $('<a target="_blank" class="btn btn-primary navbar-btn btn-sm" style="margin-right:8px"> 预览</a>').appendTo(navctn);
         $('<span class="glyphicon glyphicon-fire" aria-hidden="true"></span>').prependTo(previewA);
         grp.previewA = previewA;
         previewA.hide();
-
 
         function setpreva() {
             var sinfo = piejs.sktio.sktInfo;
@@ -158,9 +159,111 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
         piejs.sktio.afterCheckinFnArr.push(setpreva);
 
 
+        //插入按钮
+        var nstbtn = $('<button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#nstModal">  插入</button>').appendTo(navctn);
+        $('<span class="glyphicon glyphicon-leaf" aria-hidden="true"></span>').prependTo(nstbtn);
+
+
+        //插入弹窗modal
+        var nstmd = $('<div class="modal" id="nstModal" role="dialog" aria-labelledby="myModalLabel"></div>').prependTo($('body'));
+        var nstmddg = $('<div class="modal-dialog" role="document"></div>').appendTo(nstmd);
+        var nstmdctn = $('<div class="modal-content"></div>').appendTo(nstmddg);
+
+        var nstmdhd = $('<div class="modal-header"></div>').appendTo(nstmdctn);
+        var nstmdcls = $('<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>').appendTo(nstmdhd);
+        var nstmdtt = $('<h4 class="modal-title" id="myModalLabel">插入元素</h4>').appendTo(nstmdhd);
+
+        var nstmdbd = $('<div class="modal-body"></div>').appendTo(nstmdctn);
+
+        //弹窗，插入图片按钮,插入文件按钮
+        var nstmduploads = $('<div class=""></div>').appendTo(nstmdbd);
+        var nstpicbtn = $('<a target="_blank" class="btn btn-success navbar-btn" style="margin-right:8px"><span class="glyphicon glyphicon-picture" aria-hidden="true"></span> 插入图片</a>').appendTo(nstmdbd);
+        nstpicbtn.click(function () {
+            iptfile.attr('accept', '.png,.jpg,.jpeg,.gif');
+            iptfile.click();
+        });
+        var nstfilebtn = $('<a target="_blank" class="btn btn-success navbar-btn" style="margin-right:8px"><span class="glyphicon glyphicon-file" aria-hidden="true"></span> 插入图片</a>').appendTo(nstmdbd);
+        nstfilebtn.click(function () {
+            iptfile.attr('accept', '.js,.json,.xml,.html,.css,.txt,.zip,.rar,.pdf,.mp4,.mov');
+            iptfile.click();
+        });
+
+        //弹窗，插入符号按钮,插入文件按钮
+        var nstmdsigns = $('<div class=""></div>').appendTo(nstmdbd);
+        var signarr = [];
+        signarr.push(';\n', '.', ',', '$', 'br');
+        signarr.push('\'', '\"', {
+            sign: '(  )',
+            cpos: 2
+        }, {
+            sign: '{  }',
+            cpos: 2
+        }, 'br');
+        signarr.push('=', '==', '>', '<', '>=', '<=', 'br');
+        signarr.push('?', ':', '&&', '||');
+
+        signarr.forEach(function (s, i) {
+            if (s == 'br') {
+                nstmdsigns.append($('<br>'));
+                return;
+            };
+
+            //兼容对象模式，调整指针位置倒退
+            var str = s;
+            var pos;
+            if (s.cpos) {
+                str = s.sign;
+                pos = s.cpos;
+            };
+
+            var sbtn = $('<a target="_blank" class="btn btn-default navbar-btn" style="margin-right:8px"></a>').appendTo(nstmdsigns);
+            sbtn.html('&nbsp;&nbsp;' + str + '&nbsp;&nbsp;');
+            sbtn.click(function () {
+                nstmdcls.click();
+                editorGrp.editor.insertStr(str, pos);
+            });
+        });
+
+
+
+
+        //插入按钮组隐身输入组
+        var fm = $('<form method="post" action="http://upload.qiniu.com/" enctype="multipart/form-data"></form>');
+        var iptfile = $('<input name="file" type="file"  accept=".png,.jpg,.jpeg,.gif">').appendTo(fm);
+        var ipttoken = $('<input name="token" type="">').appendTo(fm);
+        var iptkey = $('<input name="key" type="">').appendTo(fm);
+        fm.appendTo(nstmdbd);
+        fm.hide();
+        iptfile.on('change', function () {
+            var furl = iptfile.val();
+            if (furl == '' || !furl) return;
+
+            //获取uploadtoken并填充ipttoken,使用shortappname+filename
+            var filenm = furl.substring(furl.lastIndexOf('\\') + 1);
+            var fkey = appname + '/' + filenm;
+            var api = "../api/getUploadToken?fpath=" + fkey;
+            $.post(api, function (res) {
+                //上传文件
+                ipttoken.val(res.data.uptoken);
+                iptkey.val(res.data.key);
+                fm.ajaxSubmit({
+                    type: 'POST',
+                    success: function (fileinfo) {
+                        fileinfo.domain = res.data.domain;
+                        fileinfo.url = fileinfo.domain + res.data.key;
+                        var url = fileinfo.domain + res.data.key;
+                        editorGrp.editor.insertStr(url);
+                    },
+                });
+            });
+        });
+
+
+
+
         //app名称
-        grp.titleSpan = $('<span style="color:#888;"></span>').appendTo(navctn);
-        grp.appurl = $('<span>...</span>').appendTo(grp.titleSpan);
+        //grp.titleSpan = $('<span style="color:#888;"></span>').appendTo(navctn);
+        //grp.appurl = $('<span>...</span>').appendTo(grp.titleSpan);
 
         //错误提示行
         var tipdiv = grp.tipdiv = $('<div style="color:#D00;font-size:0.75em">...</div>').appendTo(grp);
@@ -170,7 +273,7 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
             'color': '#164',
             'margin-left': '0px',
             'margin-top': '50px'
-        })
+        });
         tipdiv.hide();
 
         return grp;
@@ -201,6 +304,19 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
             },
         });
 
+        //插入字符串的方法
+        editor.insertStr = function (str, pos) {
+            editor.doc.replaceSelection(str, 'around');
+            var csrpos = editor.doc.getCursor('to');
+            //调整后退鼠标位置
+            if (pos) {
+                csrpos = editor.doc.getCursor();
+                csrpos.ch = csrpos.ch - pos;
+            };
+            editor.doc.setCursor(csrpos);
+            editor.focus();
+        };
+
         //调整codemirror样式
         $('<style>.CodeMirror{height:auto}</style>').appendTo(grp);
 
@@ -221,12 +337,12 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
             if (piejs.usrPower[msg.data.power] >= piejs.usrPower.author) {
                 btngrp.saveBtn.show();
                 btngrp.previewA.show();
-                btngrp.titleSpan.css('color', '#000');
+                //btngrp.titleSpan.css('color', '#000');
             };
 
             //然后载入目标的jsapp文件，请求时强制七牛刷新
             appurl = msg.data.url;
-            btngrp.appurl.html('[ ' + appurl + ' ]');
+            //btngrp.appurl.html('[ ' + appurl + ' ]');
             var urlts = appurl + '?ts=' + Number(new Date());
             $.get(urlts, function (dat) {
                 editorGrp.editor.doc.setValue(dat);

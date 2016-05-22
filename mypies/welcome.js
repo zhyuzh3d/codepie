@@ -50,7 +50,7 @@ require(['jquery', 'bootstrap', 'toastr', 'swal'], function ($, bootstrap, toast
 
         //欢迎组
         var welgrp = $('<div style="margin:1em 0;text-align:center"></div>').appendTo(grp);
-        var weltxt = ($('<div style="font-size:1.2em">欢迎来到［代码派］！</div>')).appendTo(welgrp);
+        var weltxt = ($('<div style="font-size:1.2em">代码派：每个人都可以学会的编程</div>')).appendTo(welgrp);
         var weletxt = ($('<div style="font-size:0.8em">welcome to jscodepie.com！</div>')).appendTo(welgrp);
 
         //格言组
