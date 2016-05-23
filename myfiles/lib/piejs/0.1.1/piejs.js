@@ -99,7 +99,7 @@ define(['jquery', 'soketio'], function ($, soketio) {
 
     //以下skt相关------
     //启动socketio,获取自身sid后执行afterCheckin队列的函数
-    var sktio = piejs.sktio = soketio.connect('http://'+location.host);
+    var sktio = piejs.sktio = soketio.connect('http://' + location.host);
     sktio.afterCheckinFnArr = [];
     sktio.sktInfo = [];
 
@@ -350,6 +350,39 @@ define(['jquery', 'soketio'], function ($, soketio) {
     };
 
 
+    //上传数据存储为文件的函数
+    //fns:{ing:fn(),ok:fn(res.data),err:fn(res)}
+    //cfg:{uid:1,dat:'',key:'',pid:33},uid上传者，data数据，key存储路径，pid应用id
+    function uploadDataToFile(cfgobj, fnsobj) {
+        //只能上传到自己的目录
+        if ((!cfgobj.uid || !cfgobj.file) && fnsobj.err && fnsobj.err.constructor == Function) {
+            fnsobj.err({
+                code: 0,
+                text: '参数错误.'
+            });
+        };
+        var ufolder = 'http://files.jscodepie.com/' + cfgobj.uid + '/';
+        var fpath = ufolder + cfgobj.key;
+        if (fnsobj.ing && fnsobj.ing.constructor == Function) {
+            fnsobj.ing();
+        };
+        if (!cfgobj.data) cfgobj.data = '';
+
+        var postdata = {
+            data: cfgobj.data,
+            file: cfgobj.file,
+        };
+        $.post("../api/uploadData", postdata, function (res) {
+            if (res.code == 1 && fnsobj.ok && fnsobj.ok.constructor == Function) {
+                fnsobj.ok(res.data);
+            };
+            if (res.code != 1 && fnsobj.err && fnsobj.err.constructor == Function) {
+                fnsobj.ok(res);
+            };
+        });
+    };
+    piejs.uploadDataToFile = uploadDataToFile;
+    piejs.uploadPreUrl = 'http://files.jscodepie.com/';
 
 
 

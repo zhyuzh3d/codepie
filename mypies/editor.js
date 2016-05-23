@@ -119,6 +119,79 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
         grp.saveBtn = savebtn;
         savebtn.hide();
 
+
+        savebtn.click(function () {
+            if (appurl && uinfo) {
+                var uid = uinfo.id;
+                var uidstr = '/' + uid + '/';
+                var purl = epinfo.url;
+
+                //如果打开的不是自己的应用，提示错误
+                if (purl.indexOf(piejs.uploadPreUrl + uid + '/') != 0) {
+                    swal({
+                        type: 'warning',
+                        title: '',
+                        text: '文件路径错误,请返回首页重试',
+                    });
+                    return;
+                };
+
+                var file = purl.substr(purl.indexOf(uidstr) + uidstr.length);
+                var dt = editorGrp.editor.doc.getValue();
+                var uploadcfg = {
+                    uid: uid,
+                    file: file,
+                    data: dt
+                };
+
+                var fns = {};
+                fns.ing = function () {
+                    grp.tipdiv.show().html('正在上传，请稍后...');
+                    savebtn.attr('disabled', true);
+                };
+                fns.ok = function (data) {
+                    lastSaveValue = data;
+
+                    grp.tipdiv.show().html('上传成功!');
+                    savebtn.attr('disabled', false);
+                    grp.tipdiv.fadeOut(500, function () {
+                        //向所有从属端发送更新命令
+                        for (var n = 0; n < piejs.sktFamily.length; n++) {
+                            var sinfo = piejs.sktFactory[piejs.sktFamily[n]];
+                            if (sinfo && sinfo.state == 1) {
+                                var dat = {
+                                    tar: sinfo,
+                                    api: '_runCmd',
+                                    data: {
+                                        cmd: 'location.reload()',
+                                    },
+                                    id: piejs.uniqueId(),
+                                    time: Number(new Date()),
+                                };
+                                piejs.sktio.emit('transSmsg', dat);
+                            };
+                        };
+                    });
+                };
+                fns.err = function (res) {
+                    swal({
+                        type: 'warning',
+                        title: '',
+                        text: '上传失败：' + res.text,
+                    });
+                    return;
+                };
+
+                piejs.uploadDataToFile(uploadcfg, fns);
+            };
+        });
+
+
+
+
+
+
+        /*
         savebtn.click(function () {
             //计算文件key
             if (appurl && uinfo) {
@@ -166,6 +239,7 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
                 };
             };
         });
+        */
 
         //预览按钮，新窗口打开，parentUid='',parentPid='',autoReload=true
         var previewA = $('<a target="_blank" class="btn btn-primary navbar-btn btn-sm" style="margin-right:8px"> 预览</a>').appendTo(navctn);
@@ -185,7 +259,7 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
 
 
         //插入按钮
-        var nstbtn = $('<button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#nstModal">  插入图片或符号</button>').appendTo(navctn);
+        var nstbtn = $('<button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#nstModal">  插入</button>').appendTo(navctn);
         $('<span class="glyphicon glyphicon-leaf" aria-hidden="true"></span>').prependTo(nstbtn);
 
 
@@ -265,7 +339,6 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
 
 
 
-
         //插入按钮组隐身输入组
         var fm = $('<form method="post" action="http://upload.qiniu.com/" enctype="multipart/form-data"></form>');
         var iptfile = $('<input name="file" type="file"  accept=".png,.jpg,.jpeg,.gif">').appendTo(fm);
@@ -298,6 +371,15 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
         });
 
 
+        //设置按钮
+        var nstbtn = $('<button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#nstModal">  插入</button>').appendTo(navctn);
+        $('<span class="glyphicon glyphicon-leaf" aria-hidden="true"></span>').prependTo(nstbtn);
+
+
+
+
+
+
         //app名称
         //grp.titleSpan = $('<span style="color:#888;"></span>').appendTo(navctn);
         //grp.appurl = $('<span>...</span>').appendTo(grp.titleSpan);
@@ -318,6 +400,8 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
 
 
     //编辑器部分
+    var epinfo; //当前编辑的pie的信息
+
     var editorGrp = function geneditorgrp() {
         var grp = $('<div id="editorGrp"></div>').appendTo(pieBox);;
         grp.css({
@@ -344,7 +428,7 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
             foldGutter: true,
             gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter", "CodeMirror-lint-markers"],
             autoCloseBrackets: true,
-            lint:true,
+            lint: true,
         });
 
 
@@ -367,7 +451,6 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
         //先获取目标app的js文件路径，
         var tarapi = 'http://' + location.host + '/api/getPieInfoByPuidPnm?name=' + appname;
         if (authid) tarapi += '&uid=' + authid;
-        var epinfo;
 
         $.post(tarapi, function (msg) {
             if (msg.code != 1) {
