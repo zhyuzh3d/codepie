@@ -76,7 +76,7 @@ require(['jquery', 'bootstrap', 'swal', 'toastr'], function ($, bootstrap, swal,
             //弹出输入名称的窗口
             swal({
                 title: "",
-                text: '<p>请输入一个有趣的应用名称<p><p style="font-size:0.75em;margin-top:0.5em">中英文都可以，但不要用数字开头</p>',
+                text: '<p>请输入一个有趣的应用名称<p><p style="font-size:0.75em;margin-top:0.5em">3~12位中英文，但不要用数字开头</p>',
                 type: 'input',
                 showCancelButton: true,
                 closeOnConfirm: true,

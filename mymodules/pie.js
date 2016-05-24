@@ -18,7 +18,9 @@ _rotr.apis.createPie = function () {
     var co = $co(function* () {
         var uid = ctx.ginfo.uid;
         var piename = ctx.request.body.name || ctx.query.name;
-        if (!piename || piename == '') throw Error('Pie name cannot be undefined.');
+        if (!piename || piename == '') throw Error('应用名称不能为空.');
+
+        if (!_cfg.regx.pieName.test(piename)) throw Error('应用名称格式错误.')
         var res = yield createPieCo(uid, piename);
         ctx.body = __newMsg(1, 'OK', res);
         ctx.apiRes = res;
