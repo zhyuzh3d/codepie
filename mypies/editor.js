@@ -42,6 +42,7 @@ var modarr = ['jquery',
               'toastr',
               'cm/lib/codemirror',
               'cm/addon/hint/show-hint',
+              'cm/addon/hint/anyword-hint',
               'cm/addon/hint/javascript-hint',
               'cm/addon/fold/foldcode',
               'cm/addon/fold/foldgutter',
@@ -376,10 +377,8 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
             matchBrackets: true,
             lineWrapping: false,
             extraKeys: {
+                //alt折叠当前行开始的代码块
                 "Alt": function (cm) {
-                    CodeMirror.showHint(cm, CodeMirror.hint.javascript);
-                },
-                "Ctrl-Q": function (cm) {
                     cm.foldCode(cm.getCursor());
                 }
             },
@@ -388,6 +387,23 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
             autoCloseBrackets: true,
             lint: true,
         });
+
+        //结合anyword和javascript两个提示器
+        editor.on("keyup", function (cm, event) {
+            var char = String.fromCharCode(event.keyCode);
+            if (!cm.state.completionActive && /[0-9A-Za-z\.\¾]/.test(char)) {
+                CodeMirror.showHint(cm, function (edtr, opts) {
+                    var res = CodeMirror.hint.javascript(edtr, opts);
+                    CodeMirror.hint.anyword(edtr, {
+                        list: res.list ? res.list : []
+                    });
+                    return res;
+                }, {
+                    completeSingle: false
+                });
+            };
+        });
+
 
 
         //插入字符串的方法

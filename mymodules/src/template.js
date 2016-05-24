@@ -1,6 +1,3 @@
-/*This line is created by jscodepie.com.
-Tue May 24 2016 19:15:01 GMT+0800 (CST)
-*/
 /*外部库设置*/
 require.config({
     paths: {
