@@ -89,7 +89,7 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
     var lastSaveValue; //上次保存的内容，返回时用来检查是否已经保存
 
     var btngrp = function genbtngrp() {
-        var grp = $('<nav class="navbar navbar-default navbar-fixed-top"></div>').appendTo(pieBox);
+        var grp = $('<nav class="navbar navbar-default navbar-fixed-bottom"></div>').appendTo(pieBox);
         var navctn = $('<div class="container col-xs-12 col-sm-12 col-md-12" style="white-space:nowrap;padding-left:0;padding-right:0"></div>').appendTo(grp);
 
         //返回首页
@@ -356,8 +356,8 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
 
     //编辑器部分
     var epinfo; //当前编辑的pie的信息
-    //编辑器模式，pro不隐藏reqire部分，newbie隐藏
-    var editorMod = (localStorage && localStorage.editorMod) ? localStorage.editorMod : 'pro';
+    //编辑器模式，pro不隐藏reqire部分，默认newbie隐藏
+    var editorMod = (localStorage && localStorage.editorMod) ? localStorage.editorMod : 'newbie';
 
 
     var editorGrp = function geneditorgrp() {
@@ -458,7 +458,6 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
 
         //根据pro，newbie模式设置编辑器的代码
         function setEditorCode() {
-            console.log('setEditorCode', editorMod);
             if (editorMod == 'pro') {
                 editorGrp.editor.doc.setValue(codeAll);
             } else if (editorMod == 'newbie') {

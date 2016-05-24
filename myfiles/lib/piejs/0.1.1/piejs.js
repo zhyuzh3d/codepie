@@ -12,6 +12,7 @@ require.config({
 define(['jquery', 'soketio'], function ($, soketio) {
     var piejs = {};
 
+
     //用户power权限
     piejs.usrPower = {
         unkown: 0, //未知
@@ -185,6 +186,7 @@ define(['jquery', 'soketio'], function ($, soketio) {
 
     function sktTransSmsg(data) {
         var api = (data.data) ? data.data.api : undefined;
+        console.log('>sktTransSmsg', api, data);
         if (api) {
             var handler = piejs.sktApis[api];
             if (handler && handler.constructor == Function) {
@@ -203,6 +205,7 @@ define(['jquery', 'soketio'], function ($, soketio) {
     piejs.sktio.on('transErr', sktTransErr);
 
     function sktTransErr(data) {
+        console.log('>sktTransErr', data);
         //如果有自定义的捕获函数，则使用它
         if (piejs.sktTransErrFn && piejs.sktTransErrFn.constructor == Function) {
             try {
@@ -240,13 +243,14 @@ define(['jquery', 'soketio'], function ($, soketio) {
         var frominfo = (msg.data) ? msg.data.from : undefined;
         if (!frominfo) throw Error('Socket can not be undefined.');
 
-        //将从属端sktid放入队列,设定为在线state1
+        //将从属端sktid放入队列,设定为在线state=1
         var spath = frominfo.uid + '/' + frominfo.pid;
         frominfo.state = 1;
         piejs.sktFactory[spath] = frominfo;
         if (piejs.sktFamily.indexOf(spath) == -1) {
             piejs.sktFamily.push(spath);
         };
+        console.log('>skt_joinFamily', piejs.sktFamily);
 
         //返回欢迎信息
         var dt = {
@@ -340,7 +344,7 @@ define(['jquery', 'soketio'], function ($, soketio) {
             time: Number(new Date()),
             id: piejs.uniqueId(),
         };
-        //console.log('>>>send _joinFamily', dt);
+        console.log('>autoJoinSktFamily', dt);
         sktio.emit('transSmsg', dt);
         piejs.addSktCb(dt, function (res, dat) {
             console.log(res.data.text);
@@ -383,6 +387,23 @@ define(['jquery', 'soketio'], function ($, soketio) {
     };
     piejs.uploadDataToFile = uploadDataToFile;
     piejs.uploadPreUrl = 'http://files.jscodepie.com/';
+
+
+    //初始化pie的底部和顶部界面
+    piejs.initPie = initPie;
+
+    function initPie() {
+        var pbox = $('#pieBox');
+        var _botGrp = $('<div class="col-md-12">- Powered by jscodepie.com -</div>');
+        _botGrp.css({
+            'text-align': 'center',
+            'color': '#AAA',
+            'margin': '0',
+            'font-size': '0.8em'
+        });
+        if (pbox[0] != undefined) _botGrp.appendTo(pieBox);
+    };
+
 
 
 
@@ -429,7 +450,7 @@ define(['jquery', 'soketio'], function ($, soketio) {
         },
     };
 
-    piejs.codeTemplate='';
+    piejs.codeTemplate = '';
 
 
 
