@@ -400,7 +400,8 @@ define(['jquery', 'soketio'], function ($, soketio) {
             'text-align': 'center',
             'color': '#AAA',
             'margin': '0',
-            'font-size': '0.8em'
+            'font-size': '0.8em',
+            'margin-top':'5em',
         });
         if (pbox[0] != undefined) _botGrp.appendTo(pieBox);
     };

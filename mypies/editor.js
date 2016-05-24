@@ -393,7 +393,9 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
             if (event.keyCode == 13 && event.shiftKey) {
                 updateCodeParts(undefined, 'newbie');
                 try {
-                    eval(codeBody);
+                    var fnnm = 'fn' + piejs.uniqueId().replace(/-/g, '');
+                    var fnstr = 'function ' + fnnm + '(){' + codeBody + '};' + fnnm + '();';
+                    eval(fnstr);
                 } catch (err) {
                     console.log('>快速执行失败:', err);
                 };
