@@ -388,14 +388,25 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
             lint: true,
         });
 
-        //结合anyword和javascript两个提示器
         editor.on("keyup", function (cm, event) {
+            //shift+enter快速执行codebody
+            if (event.keyCode == 13 && event.shiftKey) {
+                updateCodeParts(undefined, 'newbie');
+                try {
+                    eval(codeBody);
+                } catch (err) {
+                    console.log('>快速执行失败:', err);
+                };
+                return;
+            };
+
+            //结合anyword和javascript两个提示器
             var char = String.fromCharCode(event.keyCode);
             if (!cm.state.completionActive && /[0-9A-Za-z\.\¾]/.test(char)) {
                 CodeMirror.showHint(cm, function (edtr, opts) {
                     var res = CodeMirror.hint.javascript(edtr, opts);
                     CodeMirror.hint.anyword(edtr, {
-                        list: res.list ? res.list : []
+                        list: (res && res.list) ? res.list : []
                     });
                     return res;
                 }, {
