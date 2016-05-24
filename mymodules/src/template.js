@@ -59,3 +59,9 @@ require(['jquery', 'bootstrap', 'soketio', 'piejs', 'swal', 'toastr'], function 
     };
 
 });
+
+
+
+
+
+//end

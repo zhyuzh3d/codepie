@@ -161,6 +161,7 @@ define(['jquery', 'soketio'], function ($, soketio) {
     function sktCheckin(msg) {
         if (msg.data && msg.data.sid) {
             sktio.sktInfo = msg.data;
+            console.log('Skt _checkin ok:', msg);
             var fns = sktio.afterCheckinFnArr;
             if (fns && fns.constructor == Array) {
                 for (var n = 0; n < fns.length; n++) {

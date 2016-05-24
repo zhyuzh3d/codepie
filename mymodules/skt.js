@@ -34,6 +34,7 @@ function startFn(skt) {
         var pid = resarr[1];
         if (!pid) throw Error('Can not get pie id.');
 
+
         //记录到skt以备使用，每个skt都有这三个id
         skt.sid = sid;
         skt.uid = uid;
@@ -62,7 +63,7 @@ function startFn(skt) {
         };
         skt.emit('_checkin', __newMsg(1, 'Welcome to jscodepie skts!', ckindt));
     }).then(null, function (err) {
-        skt.emit('_checkin', __newMsg(0, err));
+        skt.emit('_checkin', __newMsg(0, err.message, err));
     });
 };
 

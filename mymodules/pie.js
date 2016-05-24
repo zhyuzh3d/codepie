@@ -372,7 +372,8 @@ function getPieInfoCo(uid, pname) {
 _pie.getPinfoByUrl = getPinfoByUrl;
 
 function getPinfoByUrl(url) {
-    var url = url.split("?")[0];
+    url = decodeURI(url);
+    url = url.split("?")[0];
     var spos = url.indexOf('/pie/');
     var pname = (spos != -1) ? url.substr(spos + 5) : undefined;
     if (pname == '') pname = undefined;
