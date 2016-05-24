@@ -170,6 +170,7 @@ _rotr.apis.setPieStateByName = function () {
         if (!state || !/\d+/.test(state)) throw Error('State format error.');
 
         var res = yield setPieStateByNameCo(uid, name, state);
+
         ctx.body = __newMsg(1, 'OK');
         return ctx;
     });
@@ -196,6 +197,9 @@ function setPieStateByNameCo(uid, pname, state) {
         var isExsist = yield _ctnu([_rds.cli, 'exists'], piekey);
         if (!isExsist) throw Error('The pie [' + pname + '] does not exists.')
         var res = yield _ctnu([_rds.cli, 'hset'], piekey, 'state', state);
+
+        //设置成功后，如果是state<=0(删除操作)，那么就重命名，避免占用
+        res = yield _pie.renamePieCo(uid, pname, pname + '_autobak');
 
         return res;
     });
@@ -235,8 +239,8 @@ function setPieStateByPidCo(uid, pid, state) {
     var co = $co(function* () {
         //设置state,先检查是否存在
         var piekey = 'pie-' + pid;
-        var isExsist = yield _ctnu([_rds.cli, 'exists'], piekey);
-        if (!isExsist) throw Error('The pie [' + pname + '] does not exists.')
+        var pname = yield _ctnu([_rds.cli, 'hget'], piekey, 'name');
+        if (!pname) throw Error('The pie id:[' + pid + '] does not exists.')
 
         //检查用户身份是否pie作者
         var puid = yield _ctnu([_rds.cli, 'hget'], piekey, 'uid');
@@ -244,6 +248,10 @@ function setPieStateByPidCo(uid, pid, state) {
 
         //修改状态
         var res = yield _ctnu([_rds.cli, 'hset'], piekey, 'state', state);
+
+        //设置成功后，如果是state<=0(删除操作)，那么就重命名，避免占用
+        res = yield _pie.renamePieCo(uid, pname, pname + '_autobak');
+
         return res;
     });
     return co;
