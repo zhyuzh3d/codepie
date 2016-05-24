@@ -386,7 +386,50 @@ define(['jquery', 'soketio'], function ($, soketio) {
 
 
 
+    //所有第三方库
+    piejs.jslibs = {
+        'jquery': {
+            alias: '$',
+            path: 'http://' + window.location.host + '/lib/jquery/2.2.1/jquery.min',
+        },
+        'piejs': {
+            alias: 'piejs',
+            path: 'http://' + window.location.host + '/lib/piejs/0.1.1/piejs',
+        },
+        'bootstrap': {
+            alias: 'bootstrap',
+            path: 'http://' + window.location.host + '/lib/bootstrap/3.3.6/bootstrap.min',
+            shim: {
+                deps: ['css!http://' + window.location.host + '/lib/bootstrap/3.3.6/bootstrap.min.css',
+                   'css!http://' + window.location.host + '/lib/bootstrap/3.3.6/bootstrap-theme.min.css',
+                    'http://' + window.location.host + '/lib/jquery/2.2.1/jquery.min.js']
+            },
+        },
+        'swal': {
+            alias: 'swal',
+            path: 'http://' + window.location.host + '/lib/sweetalert/1.1.3/sweetalert.min',
+            shim: {
+                deps: ['css!http://' + window.location.host + '/lib/sweetalert/1.1.3/sweetalert.min.css']
+            },
+        },
+        'toastr': {
+            alias: 'toastr',
+            path: 'http://' + window.location.host + '/lib/toastr.js/latest/toastr.min',
+            shim: {
+                deps: ['css!http://' + window.location.host + '/lib/toastr.js/latest/toastr.min.css']
+            }
+        },
+        'jform': {
+            alias: 'jform',
+            path: 'http://' + window.location.host + '/lib/jquery.form/3.51/jquery.form.min',
+        },
+        'md5': {
+            alias: 'md5',
+            path: 'http://' + window.location.host + '/lib/spark-md5/2.0.2/spark-md5.min',
+        },
+    };
 
+    piejs.codeTemplate='';
 
 
 

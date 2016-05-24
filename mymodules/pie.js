@@ -29,6 +29,7 @@ _rotr.apis.createPie = function () {
 
 
 /*创建一个pieApp并返回基本信息*/
+var pieTemplate = $fs.readFileSync('mymodules/src/template.js', 'utf-8');
 _pie.createPieCo = createPieCo;
 
 function createPieCo(uid, name) {
@@ -56,6 +57,8 @@ function createPieCo(uid, name) {
 
         //存储app.js到uid/appname/...
         var fstr = '/*This line is created by jscodepie.com.\n' + new Date() + '\n*/';
+        fstr += pieTemplate;
+
         var filekey = uid + '/' + name + '/app.js';
         var fileobj = yield _qn.uploadDataCo(fstr, filekey);
         var furl = _qn.cfg.BucketDomain + fileobj.key;
@@ -70,7 +73,6 @@ function createPieCo(uid, name) {
         mu.hset(piekey, 'state', 1);
 
         //存入pieset列表
-        //--mu.sadd(setkey, name);
         mu.sadd(setkey, pieid);
 
         //建立映射键_map:pie.path:pie.id

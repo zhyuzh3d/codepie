@@ -34,6 +34,8 @@ require.config({
     },
 });
 
+
+
 var modarr = ['jquery',
               'piejs',
               'swal',
@@ -83,12 +85,12 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
 
 
     //按钮组
-    var appurl;
-    var lastSaveValue;
+    var appurl; //当前编辑的app的路径，参考下面的epinfo
+    var lastSaveValue; //上次保存的内容，返回时用来检查是否已经保存
 
     var btngrp = function genbtngrp() {
-        var grp = $('<nav class="navbar navbar-default navbar-fixed-bottom"></div>').appendTo(pieBox);
-        var navctn = $('<div class="container col-xs-12 col-sm-12 col-md-12" style="white-space:nowrap;padding-left:0"></div>').appendTo(grp);
+        var grp = $('<nav class="navbar navbar-default navbar-fixed-top"></div>').appendTo(pieBox);
+        var navctn = $('<div class="container col-xs-12 col-sm-12 col-md-12" style="white-space:nowrap;padding-left:0;padding-right:0"></div>').appendTo(grp);
 
         //返回首页
         var hmlink = $('<a target="_blank" class="btn" style="margin-right:8px"> 返回</a>').appendTo(navctn);
@@ -137,7 +139,7 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
                 };
 
                 var file = purl.substr(purl.indexOf(uidstr) + uidstr.length);
-                var dt = editorGrp.editor.doc.getValue();
+                var dt = editorGrp.editor.getCode();
                 var uploadcfg = {
                     uid: uid,
                     file: file,
@@ -187,59 +189,6 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
         });
 
 
-
-
-
-
-        /*
-        savebtn.click(function () {
-            //计算文件key
-            if (appurl && uinfo) {
-                var uid = uinfo.id;
-                var urlpre = 'http://files.jscodepie.com/' + uid + '/';
-                if (appurl.indexOf(urlpre) == 0) {
-                    var file = appurl.substr(urlpre.length);
-                    var data = {
-                        data: editorGrp.editor.doc.getValue(),
-                        file: file,
-                    };
-                    grp.tipdiv.show().html('正在上传，请稍后...');
-                    savebtn.attr('disabled', true);
-                    $.post("../api/uploadData", data, function (res) {
-                        //记录上次保存内容，返回按钮检查是否已经保存
-                        lastSaveValue = data.data;
-
-                        grp.tipdiv.show().html('上传成功!');
-                        savebtn.attr('disabled', false);
-                        grp.tipdiv.fadeOut(500, function () {
-                            //向所有从属端发送更新命令
-                            for (var n = 0; n < piejs.sktFamily.length; n++) {
-                                var sinfo = piejs.sktFactory[piejs.sktFamily[n]];
-                                if (sinfo && sinfo.state == 1) {
-                                    var dat = {
-                                        tar: sinfo,
-                                        api: '_runCmd',
-                                        data: {
-                                            cmd: 'location.reload()',
-                                        },
-                                        id: piejs.uniqueId(),
-                                        time: Number(new Date()),
-                                    };
-                                    piejs.sktio.emit('transSmsg', dat);
-                                };
-                            };
-                        });
-                    });
-                } else {
-                    swal({
-                        type: 'warning',
-                        title: '',
-                        text: '文件路径错误,请返回首页重试',
-                    });
-                };
-            };
-        });
-        */
 
         //预览按钮，新窗口打开，parentUid='',parentPid='',autoReload=true
         var previewA = $('<a target="_blank" class="btn btn-primary navbar-btn btn-sm" style="margin-right:8px"> 预览</a>').appendTo(navctn);
@@ -372,12 +321,18 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
 
 
         //设置按钮
-        var nstbtn = $('<button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#nstModal">  插入</button>').appendTo(navctn);
-        $('<span class="glyphicon glyphicon-leaf" aria-hidden="true"></span>').prependTo(nstbtn);
+        var cfgdd = $('<div class="dropdown pull-right"></div>').appendTo(navctn);
+        var cfgbtn = $('<span class="btn btn-default pull-right" data-toggle="dropdown" style="font-size:1.2em;margin:0.6em"><span class="glyphicon glyphicon-menu-hamburger" aria-hidden="true"></span></div>').prependTo(cfgdd);
+        var cfgul = $('<ul class="dropdown-menu" style="text-align:center"></ul>').appendTo(cfgdd);
+        var cfgpromodbtn = $('<li><a style="line-height:2.5em;cursor:pointer"><span class="glyphicon glyphicon-sunglasses"></span> 专家模式</a></li>').appendTo(cfgul);
+        var cfgsbirdmodbtn = $('<li><a style="line-height:2.5em;cursor:pointer"><span class="glyphicon glyphicon-ice-lolly-tasted"></span> 新手模式</a></li>').appendTo(cfgul);
 
-
-
-
+        cfgpromodbtn.click(function () {
+            editorGrp.editor.setEditorMod('pro');
+        });
+        cfgsbirdmodbtn.click(function () {
+            editorGrp.editor.setEditorMod('newbie');
+        });
 
 
         //app名称
@@ -401,6 +356,9 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
 
     //编辑器部分
     var epinfo; //当前编辑的pie的信息
+    //编辑器模式，pro不隐藏reqire部分，newbie隐藏
+    var editorMod = (localStorage && localStorage.editorMod) ? localStorage.editorMod : 'pro';
+
 
     var editorGrp = function geneditorgrp() {
         var grp = $('<div id="editorGrp"></div>').appendTo(pieBox);;
@@ -445,6 +403,71 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
             editor.doc.setCursor(csrpos);
         };
 
+        //拆分后的代码
+        var codeAll = '';
+        var codeHeader = '';
+        var codeBody = '';
+        var codeFooter = '';
+
+        //切换到专家模式的方法
+        editor.setEditorMod = function (mod) {
+            updateCodeParts(undefined, editorMod);
+            editorMod = mod;
+            localStorage.editorMod = mod;
+            setEditorCode();
+        };
+
+        //拼接header，body，footer代码
+        editor.getCode = function () {
+            var str = '';
+            if (editorMod == 'pro') {
+                str = editorGrp.editor.doc.getValue();
+            } else if (editorMod == 'newbie') {
+                str = codeHeader + '\n' + editorGrp.editor.doc.getValue() + '\n' + codeFooter;
+            };
+            return str;
+        };
+
+        //每次保存都拆分code的方法，将数据拆解为codeHeader和codeBody,codeFooter三个部分
+        function updateCodeParts(str, mod) {
+            //如果没有str那么使用编辑器内的代码
+            if (!mod) mod = 'pro';
+
+            if (mod == 'pro') {
+                codeAll = (str) ? str : editorGrp.editor.doc.getValue();
+
+                var nbstartstr = '//新手从这里开始，请勿删除此行';
+                var nbstart = codeAll.indexOf(nbstartstr);
+                var nbendstr = '//新手到这里结束，请勿删除此行';
+                var nbend = codeAll.indexOf(nbendstr);
+
+                if (nbend != -1 && nbstart != 1) {
+                    nbstart += nbstartstr.length;
+                    codeHeader = codeAll.substr(0, nbstart);
+                    codeFooter = codeAll.substr(nbend);
+                    codeBody = codeAll.substr(nbstart, nbend - nbstart);
+                } else {
+                    codeHeader = '';
+                    codeFooter = '';
+                    codeBody = codeAll;
+                };
+            } else if (mod == 'newbie') {
+                codeBody = editorGrp.editor.doc.getValue()
+            };
+        };
+
+        //根据pro，newbie模式设置编辑器的代码
+        function setEditorCode() {
+            console.log('setEditorCode', editorMod);
+            if (editorMod == 'pro') {
+                editorGrp.editor.doc.setValue(codeAll);
+            } else if (editorMod == 'newbie') {
+                editorGrp.editor.doc.setValue(codeBody);
+            };
+            lastSaveValue = codeAll;
+        };
+
+
         //调整codemirror样式
         $('<style>.CodeMirror{height:auto}</style>').appendTo(grp);
 
@@ -472,8 +495,9 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
             //btngrp.appurl.html('[ ' + appurl + ' ]');
             var urlts = appurl + '?ts=' + Number(new Date());
             $.get(urlts, function (dat) {
-                editorGrp.editor.doc.setValue(dat);
-                lastSaveValue = editorGrp.editor.doc.getValue();
+                codeAll = String(dat);
+                updateCodeParts(codeAll, 'pro');
+                setEditorCode();
             }, 'text').error(function (err) {
                 btngrp.tipdiv.show();
                 btngrp.tipdiv.html('载入失败:' + JSON.stringify(err));
