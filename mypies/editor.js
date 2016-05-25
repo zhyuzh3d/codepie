@@ -482,7 +482,8 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
                     codeBody = codeAll;
                 };
             } else if (mod == 'newbie') {
-                codeBody = editorGrp.editor.doc.getValue()
+                codeBody = editorGrp.editor.doc.getValue();
+                codeAll = codeHeader + codeBody + codeFooter;
             };
         };
 
