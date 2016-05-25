@@ -5,14 +5,18 @@ require.config({
         piejs: 'http://' + window.location.host + '/lib/piejs/0.1.1/piejs',
         jform: 'http://' + window.location.host + '/lib/jquery.form/3.51/jquery.form.min',
         qiniu: 'http://' + window.location.host + '/lib/qiniu/qiniu',
-        md5: 'http://' + window.location.host + '/lib/spark-md5/2.0.2/spark-md5.min',md5: 'http://' + window.location.host + '/lib/spark-md5/2.0.2/spark-md5.min',
+        md5: 'http://' + window.location.host + '/lib/spark-md5/2.0.2/spark-md5.min',
+        md5: 'http://' + window.location.host + '/lib/spark-md5/2.0.2/spark-md5.min',
     },
 });
 
 
 /*实际函数运行*/
 define(['jquery', 'piejs', 'jform', 'qiniu', 'md5'], function ($, piejs, jform, qiniu, md5) {
+    //新手从这里开始，请勿删除此行
+
     var host = window.location.host;
+
 
     /*标题*/
     var lctr = $('#pieBox');
@@ -825,7 +829,7 @@ define(['jquery', 'piejs', 'jform', 'qiniu', 'md5'], function ($, piejs, jform, 
                 fm.ajaxSubmit({
                     type: 'POST',
                     success: function (fileinfo) {
-                        console.log('upload.qiniu.com',fileinfo);
+                        console.log('upload.qiniu.com', fileinfo);
                         fileinfo.domain = res.data.domain;
                         fileinfo.url = fileinfo.domain + res.data.key;
                         reslink.html(fileinfo.url);
@@ -931,5 +935,9 @@ define(['jquery', 'piejs', 'jform', 'qiniu', 'md5'], function ($, piejs, jform, 
 
     //底部空间
     bd.append($('<div style="margin:16px 0 120px 12px"><hr><br>Create by jscodepie</div>'))
-        //end
+
+
+
+    //新手到这里结束，请勿删除此行
+    //end
 });

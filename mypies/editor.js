@@ -67,6 +67,8 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
         tmp.remove();
     });
 
+    //新手从这里开始，请勿删除此行
+
 
     //获取当前用户基本信息
     var uinfo;
@@ -341,13 +343,12 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
         //grp.appurl = $('<span>...</span>').appendTo(grp.titleSpan);
 
         //错误提示行
-        var tipdiv = grp.tipdiv = $('<div style="color:#D00;font-size:0.75em">...</div>').appendTo(grp);
+        var tipdiv = grp.tipdiv = $('<div style="color:#D00;font-size:0.75em">...</div>').prependTo(grp);
         tipdiv.css({
             'background': '#419641',
             'padding': '4px 8px',
             'color': '#fff',
             'margin-left': '0px',
-            'margin-top': '50px'
         });
         tipdiv.hide();
 
@@ -533,6 +534,11 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
         });
         return grp;
     }();
+
+
+
+    //新手到这里结束，请勿删除此行
+
 
 });
 

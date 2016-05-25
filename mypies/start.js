@@ -39,6 +39,8 @@ require(['jquery', 'bootstrap', 'swal', 'toastr'], function ($, bootstrap, swal,
         genNavbar().prependTo(pieBox);
     });
 
+    //新手从这里开始，请勿删除此行
+
     var topNavbar;
     var genNavbar = function () {
         var navbar = $('<div class="row breadcrumb navbar navbar-default" style="margin:0;border-radius:0"></div>');
@@ -221,5 +223,9 @@ require(['jquery', 'bootstrap', 'swal', 'toastr'], function ($, bootstrap, swal,
         'margin': '2em 0',
         'font-size': '0.8em'
     })
+
+
+
+    //新手到这里结束，请勿删除此行
 
 });

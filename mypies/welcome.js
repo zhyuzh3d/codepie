@@ -39,6 +39,9 @@ require(['jquery', 'bootstrap', 'toastr', 'swal'], function ($, bootstrap, toast
         tmp.remove();
     });
 
+    //新手从这里开始，请勿删除此行
+
+
     var sexs = {
         '0': '保密',
         '1': '男',
@@ -174,4 +177,8 @@ require(['jquery', 'bootstrap', 'toastr', 'swal'], function ($, bootstrap, toast
         'margin': '0',
         'font-size': '0.8em'
     })
+
+
+
+    //新手到这里结束，请勿删除此行
 });
