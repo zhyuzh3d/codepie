@@ -53,7 +53,11 @@ function* pageApp(next) {
         var gkey = __uuid();
 
         //用户可能打开多个pie，所以pie相关的信息写入cookie是无效的
-        this.cookies.set('ukey', ukey);
+        var exptm = new Date(Number(new Date()) + _cfg.time.mon);
+        this.cookies.set('ukey', ukey, {
+            httpOnly: true,
+            expires: exptm,
+        });
 
         //对应gid写入ginfo,以备后续函数读取
         var ginfo = this.ginfo = {
@@ -134,7 +138,7 @@ function* procApi(next) {
         uid: uid,
         ukey: ukey,
         api: apinm,
-        pname: pname,
+        ppath: pname,
         puid: puid,
     };
 

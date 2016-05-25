@@ -479,5 +479,122 @@ function renamePieCo(uid, orgName, newName) {
 };
 
 
+/*创建一个数据列表hash，作者可以读取全部，用户只能读取自己id的field
+用于帮助pie作者纪录每个用户的数据
+最佳实践是为每个用户保存一个随机key文件地址
+{key:'...',value:'...'}
+*/
+_rotr.apis.setPieData = function () {
+    var ctx = this;
+    var co = $co(function* () {
+        var key = ctx.query.key || ctx.request.body.key;
+        if (!key) throw Error('数据名不能为空.');
+
+        var val = ctx.query.value || ctx.request.body.value;
+        if (!val) throw Error('数据值不能为空.');
+
+        var uid = ctx.ginfo.uid;
+
+        if (!ctx.ginfo.ppath) throw Error('应用名称格式出错.');
+        var pid = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.path:pie.id', ctx.ginfo.ppath);
+        if (!pid) throw Error('找不到应用ID.');
+
+        //写入rds数据库
+        var piekey = 'pie-' + pid;
+        var datakey = piekey + '/data-' + key;
+        var res = yield _ctnu([_rds.cli, 'hset'], datakey, uid, val);
+
+        ctx.body = __newMsg(0, 'OK');
+        ctx.apiRes = res;
+        return ctx;
+    });
+    return co;
+};
+
+/*获取自己存储的pieData数据，不能获取别人的
+{key:'...'}
+{'..value..'}
+*/
+_rotr.apis.getPieData = function () {
+    var ctx = this;
+    var co = $co(function* () {
+        var key = ctx.query.key || ctx.request.body.key;
+        if (!key) throw Error('数据名不能为空.');
+
+        var uid = ctx.ginfo.uid;
+
+        if (!ctx.ginfo.ppath) throw Error('应用名称格式出错.');
+        var pid = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.path:pie.id', ctx.ginfo.ppath);
+        if (!pid) throw Error('找不到应用ID.');
+
+        //写入rds数据库
+        var piekey = 'pie-' + pid;
+        var datakey = piekey + '/data-' + key;
+        var res = yield _ctnu([_rds.cli, 'hget'], datakey, uid);
+
+        ctx.body = __newMsg(0, 'OK', res);
+        ctx.apiRes = res;
+        return ctx;
+    });
+    return co;
+};
+
+/*pie作者获取用户存储的全部pieData数据，或者只获取指定部分用户的数据
+{key:'...',uids:[12,13,15]} uids数组或者逗号分割的字符串。如果不指定uids，那么获取全部
+{'uid':'.val.','uid':'.val.','uid':'.val.'...}
+*/
+_rotr.apis.getMyPieDatas = function () {
+    var ctx = this;
+    var co = $co(function* () {
+        var key = ctx.query.key || ctx.request.body.key;
+        if (!key) throw Error('数据名不能为空.');
+
+        var uids = ctx.query.uids || ctx.request.body.uids;
+        if (uids.constructor == String) {
+            /^[\s]*$/.test(uids) ? undefined : uids = uids.split(',');
+        };
+
+        //如果当前用户与puid一致才有权限获取
+        var uid = ctx.ginfo.uid;
+        if (!ctx.ginfo.puid) throw Error('应用的作者信息不能为空.');
+        if (ctx.ginfo.puid != uid) throw Error('您无权获取这些数据.');
+
+        //读取pid
+        if (!ctx.ginfo.ppath) throw Error('应用名称格式出错.');
+        var pid = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.path:pie.id', ctx.ginfo.ppath);
+        if (!pid) throw Error('找不到应用ID.');
+
+        //读取数据
+        var piekey = 'pie-' + pid;
+        var datakey = piekey + '/data-' + key;
+        var res;
+        if (uids && uids.constructor == Array) {
+            //获取指定,获取数值队列，然后再匹配成对象
+            var mu = _rds.cli.multi();
+            for (var i = 0; i < uids.length; i++) {
+                mu.hget(datakey, uids[i]);
+            };
+            var valarr = yield _ctnu([mu, 'exec']);
+
+            res = {};
+            for (var n = 0; n < uids.length; n++) {
+                var ustr = String(uids[n]);
+                res[ustr] = valarr[n];
+            };
+        } else {
+            //获取全部
+            res = yield _ctnu([_rds.cli, 'hgetall'], datakey);
+        };
+
+        ctx.body = __newMsg(0, 'OK', res);
+        ctx.apiRes = res;
+        return ctx;
+    });
+    return co;
+};
+
+
+
+
 //导出模块
 module.exports = _pie;

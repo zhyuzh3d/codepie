@@ -51,7 +51,7 @@ require(['jquery', 'bootstrap', 'soketio', 'piejs', 'swal', 'toastr'], function 
 
     function pieMain() {
         //新手从这里开始，请勿删除此行
-
+//在下面编写代码，可以把界面元素添加到应用盒子appendTo(pieBox);
         //新手到这里结束，请勿删除此行
     };
 

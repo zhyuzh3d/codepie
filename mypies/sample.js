@@ -498,6 +498,100 @@ define(['jquery', 'piejs', 'jform', 'qiniu', 'md5'], function ($, piejs, jform, 
 
     var grp = $('<div id="---PIE" style="margin:16px"></div>').appendTo(bd);
 
+
+    /*pie的用户获取设置一个pie数据*/
+    var grpGetMyPieDatas = function () {
+        var grp = $('<div id="grpGetMyPieDatas" style="margin:16px"></div>').appendTo(bd);
+        grp.append($('<hr>'));
+        grp.append($('<h3>重命名自己的pie[../api/getMyPieDatas]</h3>'));
+
+        var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
+        fm.attr('action', '../api/getMyPieDatas');
+        $('<label>key</label>').appendTo(fm);
+        var pidipt = $('<input name="key">').val('test').appendTo(fm);
+        $('<label>uids</label>').appendTo(fm);
+        var pidipt = $('<input name="uids">').val('1').appendTo(fm);
+        var sendbtn = $('<button style="padding:8px 16px">点击获取</button>').appendTo(grp);
+
+        $('<br><label>RES:</label><br>').appendTo(grp);
+        var resdiv = $('<div>...</div>').appendTo(grp);
+        resdiv.css('word-break', 'break-all');
+
+        sendbtn.click(function (e) {
+            fm.ajaxSubmit({
+                type: 'POST',
+                success: function (res) {
+                    console.log('getMyPieDatas', res);
+                    resdiv.html(JSON.stringify(res));
+                },
+            });
+        });
+
+        return grp;
+    }();
+
+    /*pie的用户获取设置一个pie数据*/
+    var grpGetPieData = function () {
+        var grp = $('<div id="grpGetPieData" style="margin:16px"></div>').appendTo(bd);
+        grp.append($('<hr>'));
+        grp.append($('<h3>重命名自己的pie[../api/getPieData]</h3>'));
+
+        var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
+        fm.attr('action', '../api/getPieData');
+        $('<label>key</label>').appendTo(fm);
+        var pidipt = $('<input name="key">').val('test').appendTo(fm);
+        var sendbtn = $('<button style="padding:8px 16px">点击获取</button>').appendTo(grp);
+
+        $('<br><label>RES:</label><br>').appendTo(grp);
+        var resdiv = $('<div>...</div>').appendTo(grp);
+        resdiv.css('word-break', 'break-all');
+
+        sendbtn.click(function (e) {
+            fm.ajaxSubmit({
+                type: 'POST',
+                success: function (res) {
+                    console.log('getPieData', res);
+                    resdiv.html(JSON.stringify(res));
+                },
+            });
+        });
+
+        return grp;
+    }();
+
+
+    /*pie的用户设置一个pie数据*/
+    var grpSetPieData = function () {
+        var grp = $('<div id="grpSetPieData" style="margin:16px"></div>').appendTo(bd);
+        grp.append($('<hr>'));
+        grp.append($('<h3>重命名自己的pie[../api/setPieData]</h3>'));
+
+        var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
+        fm.attr('action', '../api/setPieData');
+        $('<label>key</label>').appendTo(fm);
+        var pidipt = $('<input name="key">').val('test').appendTo(fm);
+        $('<label>value</label>').appendTo(fm);
+        var pidipt = $('<input name="value">').val('1024').appendTo(fm);
+        var sendbtn = $('<button style="padding:8px 16px">点击保存</button>').appendTo(grp);
+
+        $('<br><label>RES:</label><br>').appendTo(grp);
+        var resdiv = $('<div>...</div>').appendTo(grp);
+        resdiv.css('word-break', 'break-all');
+
+        sendbtn.click(function (e) {
+            fm.ajaxSubmit({
+                type: 'POST',
+                success: function (res) {
+                    console.log('setPieData', res);
+                    resdiv.html(JSON.stringify(res));
+                },
+            });
+        });
+
+        return grp;
+    }();
+
+
     /*检查一个重命名一个pie*/
     var grpRenamePie = function () {
         var grp = $('<div id="grpRenamePie" style="margin:16px"></div>').appendTo(bd);
