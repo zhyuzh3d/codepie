@@ -167,7 +167,7 @@ require(['jquery', 'bootstrap', 'toastr', 'swal', 'piejs'],
                             uinfo = res.data;
                             fillcard();
                         } else {
-                            toastr.err(res.text);
+                            toastr.error(res.text);
                         };
                     });
                 };
