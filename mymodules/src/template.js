@@ -40,10 +40,15 @@ require(['jquery', 'bootstrap', 'soketio', 'piejs', 'swal', 'toastr'], function 
         _pieTemp.remove();
         if (pieMain != undefined && pieMain.constructor == Function) {
             //运行主函数
-            var appui = pieMain();
+            var appui;
+            try {
+                appui = pieMain();
+            } catch (err) {
+                console.error('>运行主函数出错：', err);
+            };
 
-            //添加底部文字
-            if (piejs && piejs.initPie){
+            //添加官方界面
+            if (piejs && piejs.initPie) {
                 piejs.initPie();
             };
         };
@@ -51,7 +56,7 @@ require(['jquery', 'bootstrap', 'soketio', 'piejs', 'swal', 'toastr'], function 
 
     function pieMain() {
         //新手从这里开始，请勿删除此行
-//在下面编写代码，可以把界面元素添加到应用盒子appendTo(pieBox);
+        //在下面编写代码，可以把界面元素添加到应用盒子appendTo(pieBox);
         //新手到这里结束，请勿删除此行
     };
 

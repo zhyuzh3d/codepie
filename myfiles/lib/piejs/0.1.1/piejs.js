@@ -393,20 +393,156 @@ define(['jquery', 'soketio'], function ($, soketio) {
     //初始化pie的底部和顶部界面
     piejs.initPie = initPie;
 
-    function initPie() {
+    piejs.baseTop = undefined;
+    piejs.baseBot = undefined;
+
+    function initPie(part) {
+        part = (!part) ? 'all' : part;
+        if (part == 'bot' || part == 'all') piejs.baseBot = initPieBot();
+        if (part == 'top' || part == 'all') piejs.baseTop = initPieTop();
+    };
+
+    //初始化pie的顶部信息
+    function initPieTop() {
         var pbox = $('#pieBox');
-        var _botGrp = $('<div class="col-md-12">- Powered by jscodepie.com -</div>');
-        _botGrp.css({
+        var pieUiGrp = $('<div style="position:absolute;top:0;bottom:0;right:0"></div>').appendTo(pbox);
+
+        var pieBall = pieUiGrp.ballbtn = $('<div></div>').appendTo(pieUiGrp);
+        pieBall.css({
+            'width': '2.5em',
+            'height': '2.5em',
+            'border-radius': '2em',
+            'background-color': '#EEE',
+            'border': '1px solid #CCC',
+            'margin': '0.75em',
+            'position': 'absolute',
+            'right': '0.5em',
+            'text-align': 'center',
+            'line-height': '2.5em',
+            'overflow': 'hidden',
+            'cursor': 'pointer',
+        });
+        pieBall.html('P');
+
+        var pieMenu = $('<ul></ul>').appendTo(pieUiGrp);
+        pieMenu.css({
+            'position': 'absolute',
+            'top': '4em',
+            'right': '1em',
+            'width': '10em',
+            'border': '1px solid #CCC',
+            'background-color': '#FFF',
+            'border-radius': '0.5em',
+            'text-align': 'center',
+            'box-shadow': '0 0 2em #CCC',
+            'padding': '0',
+            'text-align': 'center',
+            'overflow': 'hidden'
+        });
+
+        var startmn = $('<li>我的首页</li>').appendTo(pieMenu);
+        startmn.css({
+            'list-style-type': 'none',
+            'height': '3.5em',
+            'cursor': 'pointer',
+            'line-height': '3.5em',
+        });
+        startmn.hover()
+        startmn.hover(function (e) {
+            $(e.target).css({
+                'background-color': '#f0ffff'
+            });
+        }, function (e) {
+            $(e.target).css({
+                'background-color': '#FFF'
+            });
+        });
+
+        $('<hr style="margin:0">').appendTo(pieMenu);
+        var setmn = startmn.clone(true, true).html('个人资料').appendTo(pieMenu);
+        $('<hr style="margin:0">').appendTo(pieMenu);
+        var quitmn = startmn.clone(true, true).html('退出账号').appendTo(pieMenu);
+
+        //菜单功能
+        startmn.click(function () {
+            pieMenu.hide(200, function () {
+                location.href = 'http://' + window.location.host + '/app/start';
+            });
+        });
+        setmn.click(function () {
+            pieMenu.hide(200, function () {
+                location.href = 'http://' + window.location.host + '/app/login?tab=bindMail';
+            });
+        });
+        quitmn.click(function () {
+            var api = 'http://' + location.host + '/api/logout';
+            $.post(api, {}, function (res) {
+                console.log('POST', api, undefined, res);
+                pieMenu.hide(200, function () {
+                    if (res.code == 1) {
+                        location.href = 'http://' + window.location.host + '/app/login?tab=login';
+                    } else {
+                        console.error(res.text);
+                    };
+                });
+            });
+        });
+
+        //圆按钮点击功能
+        pieMenu.hide();
+        var menuvis = false;
+        pieBall.click(function () {
+            if (menuvis == false) {
+                $('body').unbind('click', hidePieMenu);
+                pieMenu.show(200, function () {
+                    $('body').bind('click', hidePieMenu);
+                });
+                menuvis = true;
+            } else {
+                pieMenu.hide(200);
+                $('body').unbind('click', hidePieMenu);
+                menuvis = false;
+            };
+        });
+
+        function hidePieMenu() {
+            menuvis = false;
+            pieMenu.hide(200);
+        };
+
+        //读取信息，更新图标和logo
+        pieUiGrp.refresh = function () {
+            var api = 'http://' + location.host + '/api/getMyProfile';
+            $.post(api, {}, function (res) {
+                console.log('POST', api, undefined, res);
+                if (res.code == 1) {
+                    piejs.uinfo = res.data;
+                    pieBall.html(piejs.uinfo.nick.substr(0));
+                } else {
+                    toastr.err(res.text);
+                };
+            });
+        };
+        pieUiGrp.refresh();
+
+        return pieUiGrp;
+    };
+
+    //初始化pie的底部信息
+    function initPieBot() {
+        var pbox = $('#pieBox');
+        var botGrp = $('<div class="col-md-12">- Powered by jscodepie.com -</div>');
+        botGrp.css({
             'text-align': 'center',
             'color': '#AAA',
             'margin': '0',
             'font-size': '0.8em',
-            'margin-top':'5em',
+            'margin-top': '2em',
+            'margin-bottom': '2em',
         });
-        if (pbox[0] != undefined) _botGrp.appendTo(pieBox);
+        if (pbox[0] != undefined) botGrp.appendTo(pieBox);
+        return botGrp;
     };
-
-
 
 
     //所有第三方库
