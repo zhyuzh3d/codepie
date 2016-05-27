@@ -389,7 +389,6 @@ require(['jquery', 'bootstrap', 'swal', 'toastr', 'md5', 'piejs'], function ($, 
 
                 //性别组
                 var fmgrp2 = $('<div style="line-height:2.2em" class="form-group">性别</div>').appendTo(setpnl);
-                $('<label>性别</label><br>').appendTo(fmgrp2);
                 var sexbtngrp = $('<div class="btn-group row" data-toggle="buttons"></div>').appendTo(fmgrp2);
                 sexbtngrp.css({
                     'width': '100%',
@@ -426,11 +425,7 @@ require(['jquery', 'bootstrap', 'swal', 'toastr', 'md5', 'piejs'], function ($, 
                     $.post(api, dt, function (res) {
                         setbtn.attr('disabled', false);
                         if (res.code == 1) {
-                            swal({
-                                type: 'warning',
-                                title: '',
-                                text: '保存成功'
-                            });
+                            toastr.success('保存成功！');
                             piejs.baseTop.refresh();
                         } else {
                             swal({

@@ -404,13 +404,26 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
                 lint: true,
             });
 
+            var selstr;
+            editor.on('keydown', function (cm, event) {
+                selstr = editor.doc.getSelection();
+            });
+
             editor.on("keyup", function (cm, event) {
-                //shift+enter快速执行codebody
-                if (event.keyCode == 13 && event.shiftKey) {
-                    updateCodeParts(undefined, 'newbie');
+                //s+enter快速执行codebody
+                if (event.keyCode == 13 && event.ctrlKey) {
+                    var cmdstr;
+                    if (selstr) {
+                        cmdstr = selstr;
+                        editor.insertStr(selstr);
+                        selstr = undefined;
+                    } else {
+                        updateCodeParts(undefined, 'newbie');
+                        cmdstr=codeBody;
+                    }
                     try {
                         var fnnm = 'fn' + piejs.uniqueId().replace(/-/g, '');
-                        var fnstr = 'function ' + fnnm + '(){' + codeBody + '};' + fnnm + '();';
+                        var fnstr = 'function ' + fnnm + '(){' + cmdstr + '};' + fnnm + '();';
                         eval(fnstr);
                     } catch (err) {
                         console.log('>快速执行失败:', err);
