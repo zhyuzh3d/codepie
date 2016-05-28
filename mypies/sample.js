@@ -540,6 +540,10 @@ define(['jquery', 'piejs', 'jform', 'qiniu', 'md5'], function ($, piejs, jform, 
         fm.attr('action', '../api/getPieData');
         $('<label>key</label>').appendTo(fm);
         var pidipt = $('<input name="key">').val('test').appendTo(fm);
+        $('<label>pid</label>').appendTo(fm);
+        var pidipt = $('<input name="pid">').val(4).appendTo(fm);
+        $('<label>pname</label>').appendTo(fm);
+        var pidipt = $('<input name="pname">').val('1/sample').appendTo(fm);
         var sendbtn = $('<button style="padding:8px 16px">点击获取</button>').appendTo(grp);
 
         $('<br><label>RES:</label><br>').appendTo(grp);

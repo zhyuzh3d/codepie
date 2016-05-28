@@ -411,7 +411,7 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
 
             editor.on("keyup", function (cm, event) {
                 //s+enter快速执行codebody
-                if (event.keyCode == 13 && event.ctrlKey) {
+                if (event.keyCode == 13 && (event.ctrlKey || event.shiftKey)) {
                     var cmdstr;
                     if (selstr) {
                         cmdstr = selstr;
@@ -419,7 +419,7 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
                         selstr = undefined;
                     } else {
                         updateCodeParts(undefined, 'newbie');
-                        cmdstr=codeBody;
+                        cmdstr = codeBody;
                     }
                     try {
                         var fnnm = 'fn' + piejs.uniqueId().replace(/-/g, '');

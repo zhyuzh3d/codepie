@@ -512,7 +512,8 @@ _rotr.apis.setPieData = function () {
 };
 
 /*获取自己存储的pieData数据，不能获取别人的
-{key:'...'}
+但可以获取同一pie作者的其他pie的数据
+{key:'...',pid:32,pname:'...'},pid和pname可选，优先使用pid
 {'..value..'}
 */
 _rotr.apis.getPieData = function () {
@@ -524,10 +525,39 @@ _rotr.apis.getPieData = function () {
         var uid = ctx.ginfo.uid;
 
         if (!ctx.ginfo.ppath) throw Error('应用名称格式出错.');
-        var pid = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.path:pie.id', ctx.ginfo.ppath);
-        if (!pid) throw Error('找不到应用ID.');
+        var tpid = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.path:pie.id', ctx.ginfo.ppath);
+        if (!tpid) throw Error('找不到应用ID.');
 
-        //写入rds数据库
+        //如果通过pid或者pname指定pie，那么先获取pid；
+        var pid = ctx.query.pid || ctx.request.body.pid;
+        var pname = ctx.query.pname || ctx.request.body.pname;
+
+        //如果没有指定pie，那么使用当前pie
+        if ((!pid || pid == '') && (!pname || pname == '')) {
+            pid = tpid;
+        } else {
+            //如果指定，那么先确定pid，再验证合法性
+            if (!pid) {
+                if (pname) {
+                    pid = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.path:pie.id', pname);
+                };
+            };
+
+            //如果存在pid，检验合法性
+            if (pid) {
+                var mu = _rds.cli.multi();
+                mu.hget('pie-' + pid, 'uid');
+                mu.hget('pie-' + tpid, 'uid');
+                var valarr = yield _ctnu([mu, 'exec']);
+                if (!valarr[0]) throw Error('指定的应用不存在.');
+                if (valarr[0] != valarr[1]) throw Error('您无法读取其他作者的应用数据.')
+            } else {
+                throw Error('找不到指定的应用.');
+            };
+        };
+
+
+        //读取rds数据库
         var piekey = 'pie-' + pid;
         var datakey = piekey + '/data-' + key;
         var res = yield _ctnu([_rds.cli, 'hget'], datakey, uid);
