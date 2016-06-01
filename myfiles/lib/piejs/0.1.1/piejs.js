@@ -417,6 +417,7 @@ define(['jquery', 'soketio', 'bootstrap', 'toastr', 'swal'],
         piejs.baseBot = undefined;
 
         function initPie(part) {
+            if (part == 'none') return;
             part = (!part) ? 'all' : part;
             if (part == 'bot' || part == 'all') piejs.baseBot = initPieBot();
             if (part == 'top' || part == 'all') {
@@ -459,7 +460,7 @@ define(['jquery', 'soketio', 'bootstrap', 'toastr', 'swal'],
         function initPieTop() {
             var pbox = $('#pieBox');
 
-            var pieUiGrp = $('<div style="position:absolute;top:0;bottom:0;right:0"></div>').appendTo(pbox);
+            var pieUiGrp = $('<div id="_pieTopGrp" style="position:absolute;top:0;bottom:0;right:0;z-index:100"></div>').appendTo(pbox);
 
             var pieBall = pieUiGrp.ballbtn = $('<div></div>').appendTo(pieUiGrp);
             pieBall.css({
@@ -623,7 +624,7 @@ define(['jquery', 'soketio', 'bootstrap', 'toastr', 'swal'],
         //初始化pie的底部信息
         function initPieBot() {
             var pbox = $('#pieBox');
-            var botGrp = $('<div class="col-md-12">- Powered by jscodepie.com -</div>');
+            var botGrp = $('<div id="_pieBotGrp" class="col-xs-12">- Powered by jscodepie.com -</div>');
             botGrp.css({
                 'text-align': 'center',
                 'color': '#AAA',

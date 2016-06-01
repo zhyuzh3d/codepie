@@ -172,6 +172,7 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
                     fns.ok = function (data) {
                         lastSaveValue = data;
 
+                        console.log('upload ok:',data);
                         grp.tipdiv.show().html('上传成功!');
                         savebtn.attr('disabled', false);
                         grp.tipdiv.fadeOut(500, function () {
@@ -394,9 +395,9 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
                 lineWrapping: false,
                 extraKeys: {
                     //alt折叠当前行开始的代码块
-                    "Alt": function (cm) {
+                    'Alt': function (cm) {
                         cm.foldCode(cm.getCursor());
-                    }
+                    },
                 },
                 foldGutter: true,
                 gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter", "CodeMirror-lint-markers"],
@@ -431,9 +432,11 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
                     return;
                 };
 
+
                 //结合anyword和javascript两个提示器
                 var char = String.fromCharCode(event.keyCode);
-                if (!cm.state.completionActive && /[0-9A-Za-z\.\¾]/.test(char)) {
+                //对于非字母数字点或者按下ctrlalt的，忽略
+                if (!cm.state.completionActive && /[0-9A-Za-z\.\¾]/.test(char) && !event.altKey && !event.ctrlKey) {
                     CodeMirror.showHint(cm, function (edtr, opts) {
                         var res = CodeMirror.hint.javascript(edtr, opts);
                         CodeMirror.hint.anyword(edtr, {
@@ -534,6 +537,7 @@ require(modarr, function ($, piejs, swal, toastr, CodeMirror) {
             if (authid) tarapi += '&uid=' + authid;
 
             $.post(tarapi, function (msg) {
+                console.log(tarapi, {}, msg);
                 if (msg.code != 1) {
                     console.log('>获取应用信息失败:' + msg.text);
                     return;
