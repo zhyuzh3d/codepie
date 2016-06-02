@@ -7,7 +7,8 @@ var cfg = {
     Uptoken_Url: "/uptoken",
     Domain: "http://qiniu-plupload.qiniudn.com/",
     BucketName: "jscodepie",
-    BucketDomain: "http://files.jscodepie.com/"
+    BucketDomain: "http://files.jscodepie.com/",
+    BucketDomainDev: "http://filesdev.jscodepie.com/"
 };
 _qn.cfg = cfg;
 

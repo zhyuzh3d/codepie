@@ -60,6 +60,8 @@ httpSvr.on('error', function (err) {
         _app.hostName = 'localhost';
         _app.hostPort = 8088;
         _app.hostUrl = 'http://localhost:' + _app.hostPort;
+        //修改存储路径到filesdev
+        _qn.cfg.BucketDomain = _qn.cfg.BucketDomainDev;
         httpSvr.listen(_app.hostPort);
         console.log('App started on localhost server.');
         break;

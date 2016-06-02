@@ -498,6 +498,38 @@ define(['jquery', 'piejs', 'jform', 'qiniu', 'md5'], function ($, piejs, jform, 
 
     var grp = $('<div id="---PIE" style="margin:16px"></div>').appendTo(bd);
 
+    /*pie的作者设置pie属性*/
+    var grpSetMyPieAttr = function () {
+        var grp = $('<div id="grpSetMyPieAttr" style="margin:16px"></div>').appendTo(bd);
+        grp.append($('<hr>'));
+        grp.append($('<h3>设置自己的pie的属性，不能是id,name,pid[../api/setMyPieAttr]</h3>'));
+
+        var fm = $('<form method="post" enctype="text/plain"></form>').appendTo(grp);
+        fm.attr('action', '../api/setMyPieAttr');
+        $('<label>pname</label>').appendTo(fm);
+        var pidipt = $('<input name="pname">').val('welcome').appendTo(fm);
+        $('<label>attrs(obj)</label>').appendTo(fm);
+        var attr = $('<input name="attrs">').val('{"alias":"欢迎"}').appendTo(fm);
+        var sendbtn = $('<button style="padding:8px 16px">点击设置</button>').appendTo(grp);
+
+        $('<br><label>RES:</label><br>').appendTo(grp);
+        var resdiv = $('<div>...</div>').appendTo(grp);
+        resdiv.css('word-break', 'break-all');
+
+        sendbtn.click(function (e) {
+            fm.ajaxSubmit({
+                type: 'POST',
+                success: function (res) {
+                    console.log('setMyPieAttr', res);
+                    resdiv.html(JSON.stringify(res));
+                },
+            });
+        });
+
+        return grp;
+    }();
+
+
 
     /*pie的用户获取设置一个pie数据*/
     var grpGetMyPieDatas = function () {

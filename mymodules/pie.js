@@ -421,7 +421,7 @@ _rotr.apis.isPieExists = function () {
         var exist = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.path:pie.id', ppath);
         var res = (!exist) ? false : true;
 
-        ctx.body = __newMsg(0, 'OK', {
+        ctx.body = __newMsg(1, 'OK', {
             isExists: res
         });
 
@@ -435,6 +435,7 @@ _rotr.apis.isPieExists = function () {
 /*重命名pie的接口
 {orgName:'xxx',newName:'xxx'}
 {}
+！！！修改name将导致piename和存储路径对不上的问题，调用旧pname路径下的文件可能会造成混乱
 */
 _rotr.apis.renamePie = function () {
     var ctx = this;
@@ -448,7 +449,7 @@ _rotr.apis.renamePie = function () {
         var uid = ctx.ginfo.uid;
         var res = yield _pie.renamePieCo(uid, orgName, newName);
 
-        ctx.body = __newMsg(0, 'OK');
+        ctx.body = __newMsg(1, 'OK');
         ctx.apiRes = res;
         return ctx;
     });
@@ -504,7 +505,7 @@ _rotr.apis.setPieData = function () {
         var datakey = piekey + '/data-' + key;
         var res = yield _ctnu([_rds.cli, 'hset'], datakey, uid, val);
 
-        ctx.body = __newMsg(0, 'OK');
+        ctx.body = __newMsg(1, 'OK');
         ctx.apiRes = res;
         return ctx;
     });
@@ -562,7 +563,7 @@ _rotr.apis.getPieData = function () {
         var datakey = piekey + '/data-' + key;
         var res = yield _ctnu([_rds.cli, 'hget'], datakey, uid);
 
-        ctx.body = __newMsg(0, 'OK', res);
+        ctx.body = __newMsg(1, 'OK', res);
         ctx.apiRes = res;
         return ctx;
     });
@@ -616,14 +617,61 @@ _rotr.apis.getMyPieDatas = function () {
             res = yield _ctnu([_rds.cli, 'hgetall'], datakey);
         };
 
-        ctx.body = __newMsg(0, 'OK', res);
+        ctx.body = __newMsg(1, 'OK', res);
         ctx.apiRes = res;
         return ctx;
     });
     return co;
 };
 
+/*作者修改一个pie的设置
+可以修改或添加自定义字段，但不能修改id和uid,name;
+{pname:'...',pid:12,attrs:{url:'...',alias:'...',...}}
+{}
+！！！修改url属性可能导致调用文件混乱，但这不影响pie的存储目录
+*/
+_rotr.apis.setMyPieAttr = function () {
+    var ctx = this;
+    var co = $co(function* () {
+        var pid = ctx.query.pid || ctx.request.body.pid;
+        var pname = ctx.query.pname || ctx.request.body.pname;
 
+        var uid = ctx.ginfo.uid;
+        var ppath=uid+'/'+pname;
+
+        if (!pid && !pname) throw Error('未指定应用');
+        if (!pid) {
+            pid = yield _ctnu([_rds.cli, 'zscore'], '_map:pie.path:pie.id',ppath);
+            if (!pid) throw Error('找不到应用ID.');
+        };
+
+        var attrs = ctx.query.attrs || ctx.request.body.attrs;
+        if (attrs.constructor == String) {
+            try {
+                attrs = JSON.parse(attrs);
+            } catch (err) {
+                throw Error('属性参数格式错误')
+            }
+        };
+        if (!attrs) throw Error('属性不能为空');
+
+
+        //存储到数据库
+        var mu = _rds.cli.multi();
+        var pkey = 'pie-' + pid;
+        for (var attr in attrs) {
+            if (attr != 'id' || attr != 'name' || attr != 'uid') {
+                mu.hset(pkey, attr, attrs[attr]);
+            };
+        };
+        var res = yield _ctnu([mu, 'exec']);
+
+        ctx.body = __newMsg(1, 'OK', res);
+        ctx.apiRes = res;
+        return ctx;
+    });
+    return co;
+};
 
 
 //导出模块
